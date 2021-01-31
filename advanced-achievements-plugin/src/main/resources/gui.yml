@@ -145,6 +145,8 @@ Custom:
   Item: feather
 Commands:
   Item: bookshelf
+McMMO:
+  Item: gold_ingot
 #============================================================#
 # +--------------------------------------------------------+ #
 # | Parameters in future plugin versions will  appear here | #

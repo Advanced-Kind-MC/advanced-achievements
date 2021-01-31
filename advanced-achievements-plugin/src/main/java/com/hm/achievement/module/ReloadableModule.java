@@ -38,6 +38,7 @@ import com.hm.achievement.listener.statistics.JobsRebornListener;
 import com.hm.achievement.listener.statistics.KillsListener;
 import com.hm.achievement.listener.statistics.LavaBucketsListener;
 import com.hm.achievement.listener.statistics.LevelsListener;
+import com.hm.achievement.listener.statistics.McMMOListener;
 import com.hm.achievement.listener.statistics.MilksListener;
 import com.hm.achievement.listener.statistics.MusicDiscsListener;
 import com.hm.achievement.listener.statistics.PetMasterGiveListener;
@@ -287,4 +288,8 @@ public abstract class ReloadableModule {
 	@Binds
 	@IntoSet
 	abstract Reloadable bindJobsRebornListener(JobsRebornListener jobsRebornListener);
+
+	@Binds
+	@IntoSet
+	abstract Reloadable bindMcMMOListener(McMMOListener mcMMOListener);
 }

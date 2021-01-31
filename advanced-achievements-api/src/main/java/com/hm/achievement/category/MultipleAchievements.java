@@ -18,7 +18,8 @@ public enum MultipleAchievements implements Category {
 	BREEDING("Breeding", "mobname"),
 	PLAYERCOMMANDS("PlayerCommands", "command"),
 	CUSTOM("Custom", "customname"),
-	JOBSREBORN("JobsReborn", "jobname");
+	JOBSREBORN("JobsReborn", "jobname"),
+	MCMMO("McMMO", "skillname");
 
 	private static final Map<String, MultipleAchievements> CATEGORY_NAMES_TO_ENUM = new HashMap<>();
 	static {

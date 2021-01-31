@@ -170,6 +170,14 @@ public class ConfigurationParser {
 			logger.warning(
 					"Ensure you have placed JobsReborn in your plugins folder or add JobsReborn to the DisabledCategories list in config.yml.");
 		}
+		// Need McMMO for McMMO category.
+		if (!disabledCategories.contains(MultipleAchievements.MCMMO)
+				&& !Bukkit.getPluginManager().isPluginEnabled("mcMMO")) {
+			disabledCategories.add(MultipleAchievements.MCMMO);
+			logger.warning("Overriding configuration: disabling McMMO category.");
+			logger.warning(
+					"Ensure you have placed McMMO in your plugins folder or add McMMO to the DisabledCategories list in config.yml.");
+		}
 		// Elytras introduced in Minecraft 1.9.
 		if (!disabledCategories.contains(NormalAchievements.DISTANCEGLIDING) && serverVersion < 9) {
 			disabledCategories.add(NormalAchievements.DISTANCEGLIDING);
