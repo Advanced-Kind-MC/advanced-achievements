@@ -44,7 +44,7 @@ class YamlUpdaterTest {
 
 		byte[] expectedUserConfig = Files.readAllBytes(Paths.get(getClass().getResource("/config-updated.yml").toURI()));
 		byte[] actualUserConfig = Files.readAllBytes(userFile.toPath());
-		assertEquals(new String(expectedUserConfig), new String(actualUserConfig));
+		assertEquals(new String(expectedUserConfig).replace("\r", ""), new String(actualUserConfig).replace("\r", ""));
 	}
 
 	@Test
