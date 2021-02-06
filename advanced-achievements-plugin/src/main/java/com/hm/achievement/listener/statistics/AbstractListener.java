@@ -74,6 +74,24 @@ public abstract class AbstractListener extends StatisticIncreaseHandler implemen
 	}
 
 	/**
+	 * Sets the statistic in the database for a MultipleAchievement and awards an achievement if an available one is
+	 * found.
+	 * 
+	 * @param player
+	 * @param subcategories
+	 * @param incrementValue
+	 */
+	void increaseStatisticAndAwardAchievementsIfAvailable(Player player, Set<String> subcategories, int incrementValue) {
+		if (shouldIncreaseBeTakenIntoAccount(player, category)) {
+			subcategories.forEach(subcategory -> {
+				long amount = cacheManager.getAndIncreaseStatisticAmount((MultipleAchievements) category, subcategory,
+						player.getUniqueId(), incrementValue);
+				checkThresholdsAndAchievements(player, category, subcategory, amount);
+			});
+		}
+	}
+
+	/**
 	 * Returns all achievements that match the provided identifier. This methods accounts for groups of sub-categories,
 	 * e.g. 'zombie|pig_zombie|zombie_horse|zombie_villager'.
 	 * 

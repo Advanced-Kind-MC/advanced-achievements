@@ -183,6 +183,31 @@ public class CacheManager implements Cleanable {
 		}
 		return statistic.getValue();
 	}
+	
+	/**
+	 * Sets the statistic for a MultipleAchievement to the given value if it is higher than the current one and returns the updated statistic value.
+	 * Calls the database if not found in the cache.
+	 *
+	 * @param category
+	 * @param subcategory
+	 * @param player
+	 * @param value
+	 * @return the updated statistic value
+	 */
+	public long getAndIncreaseStatisticAmount(MultipleAchievements category, String subcategory, UUID player, int value) {
+		SubcategoryUUID key = new SubcategoryUUID(subcategory, player);
+		Map<SubcategoryUUID, CachedStatistic> cache = getHashMap(category);
+		CachedStatistic statistic = cache.get(key);
+		if (statistic == null) {
+			statistic = new CachedStatistic(databaseManager.getMultipleAchievementAmount(player, category,
+					key.getSubcategory()), true);
+			cache.put(key, statistic);
+		}
+		if(statistic.getValue() < value) {
+			statistic.setValue(value);
+		}
+		return statistic.getValue();
+	}
 
 	/**
 	 * Returns whether player has received a specific achievement.

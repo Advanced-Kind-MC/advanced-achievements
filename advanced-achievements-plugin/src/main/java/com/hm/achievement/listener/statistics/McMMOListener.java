@@ -6,12 +6,17 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.plugin.java.JavaPlugin;
 
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.events.experience.McMMOPlayerLevelUpEvent;
+import com.gmail.nossr50.events.players.McMMOPlayerProfileLoadEvent;
+import com.hm.achievement.AdvancedAchievements;
 import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.config.AchievementMap;
 import com.hm.achievement.db.CacheManager;
@@ -29,7 +34,7 @@ public class McMMOListener extends AbstractListener {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onJob(McMMOPlayerLevelUpEvent event) {
+	public void onMcMMO(McMMOPlayerLevelUpEvent event) {
 		Player player = event.getPlayer().getPlayer();
 		if (player == null) {
 			return;
@@ -41,6 +46,40 @@ public class McMMOListener extends AbstractListener {
 		}
 
 		Set<String> foundAchievements = findAchievementsByCategoryAndName(jobName);
-		updateStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, event.getLevelsGained());
+		increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, event.getSkillLevel());
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onJoin(McMMOPlayerProfileLoadEvent event) {
+		Player player = event.getPlayer().getPlayer();
+		if (player == null) {
+			return;
+		}
+
+		if (event.isAsynchronous()) {
+			Bukkit.getScheduler().runTask(JavaPlugin.getPlugin(AdvancedAchievements.class), () -> {
+				for (PrimarySkillType skill : PrimarySkillType.values()) {
+					String skillName = skill.getName().toLowerCase();
+					if (!player.hasPermission(category.toChildPermName(skillName))) {
+						continue;
+					}
+
+					Set<String> foundAchievements = findAchievementsByCategoryAndName(skillName);
+					increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements,
+							event.getProfile().getSkillLevel(skill));
+				}
+			});
+		} else {
+			for (PrimarySkillType skill : PrimarySkillType.values()) {
+				String skillName = skill.getName().toLowerCase();
+				if (!player.hasPermission(category.toChildPermName(skillName))) {
+					continue;
+				}
+
+				Set<String> foundAchievements = findAchievementsByCategoryAndName(skillName);
+				increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements,
+						event.getProfile().getSkillLevel(skill));
+			}
+		}
 	}
 }
