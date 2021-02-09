@@ -136,6 +136,7 @@ permissions:
       achievement.count.breeding.*: true
       achievement.count.playercommands.*: true
       achievement.count.jobsreborn.*: true
+      achievement.count.mcmmo.*: true
       achievement.count.custom.*: true
   achievement.count.connections:
     description: Allows connection statistics in database to increase.
@@ -289,6 +290,9 @@ permissions:
     default: true
   achievement.count.jobsreborn.*:
     description: Allows jobs reborn statistics in database to increase.
+    default: true
+  achievement.count.mcmmo.*:
+    description: Allows mcMMO statistics in database to increase.
     default: true
   achievement.count.custom.*:
     description: Allows custom statistics in database to increase.
