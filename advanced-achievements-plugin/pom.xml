@@ -134,6 +134,10 @@
 			<artifactId>mcMMO</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>me.prunt</groupId>
+			<artifactId>advancedafk</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>net.ess3</groupId>
 			<artifactId>EssentialsX</artifactId>
 			<exclusions>

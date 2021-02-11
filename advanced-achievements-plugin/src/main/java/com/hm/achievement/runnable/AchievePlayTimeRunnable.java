@@ -28,9 +28,11 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 	private static final long MILLIS_PER_HOUR = TimeUnit.HOURS.toMillis(1);
 
 	private Essentials essentials;
+	private me.prunt.advancedafk.Main advancedAFK;
 	private long previousTimeMillis;
 
-	private boolean configIgnoreAFKPlayedTime;
+	private boolean configIgnoreAFKPlayedTimeEssentials;
+	private boolean configIgnoreAFKPlayedTimeAdvancedAFK;
 
 	@Inject
 	public AchievePlayTimeRunnable(@Named("main") YamlConfiguration mainConfig, int serverVersion,
@@ -40,6 +42,9 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 		if (Bukkit.getPluginManager().isPluginEnabled("Essentials")) {
 			essentials = (Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
 		}
+		if (Bukkit.getPluginManager().isPluginEnabled("AdvancedAFK")) {
+			advancedAFK = (me.prunt.advancedafk.Main) Bukkit.getPluginManager().getPlugin("AdvancedAFK");
+		}
 
 		previousTimeMillis = System.currentTimeMillis();
 	}
@@ -48,7 +53,8 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 	public void extractConfigurationParameters() {
 		super.extractConfigurationParameters();
 
-		configIgnoreAFKPlayedTime = essentials != null && mainConfig.getBoolean("IgnoreAFKPlayedTime");
+		configIgnoreAFKPlayedTimeEssentials = essentials != null && mainConfig.getBoolean("IgnoreAFKPlayedTime");
+		configIgnoreAFKPlayedTimeAdvancedAFK = advancedAFK != null && mainConfig.getBoolean("IgnoreAFKPlayedTime");
 	}
 
 	@Override
@@ -71,7 +77,11 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 		}
 
 		// If player is AFK, don't update played time.
-		if (configIgnoreAFKPlayedTime && essentials.getUser(player).isAfk()) {
+		if (configIgnoreAFKPlayedTimeEssentials && essentials.getUser(player).isAfk()) {
+			return;
+		}
+		// AdvancedAFK variant
+		if (configIgnoreAFKPlayedTimeAdvancedAFK && me.prunt.advancedafk.utils.AFKHandler.getAFKPlayer(advancedAFK, player).isAFK()) {
 			return;
 		}
 
