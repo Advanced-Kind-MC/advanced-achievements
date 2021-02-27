@@ -175,3 +175,4 @@ hs_err_pid*
 # premium content
 dependencies/AdvancedAFK.jar
 dependencies/mcMMO.jar
+advanced-achievements-plugin/achievements.mv.db
