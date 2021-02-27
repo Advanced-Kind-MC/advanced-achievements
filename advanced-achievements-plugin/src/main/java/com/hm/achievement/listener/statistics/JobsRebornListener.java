@@ -6,19 +6,18 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerJoinEvent;
-
 import com.gamingmesh.jobs.Jobs;
-import com.gamingmesh.jobs.api.JobsJoinEvent;
 import com.gamingmesh.jobs.api.JobsLevelUpEvent;
 import com.gamingmesh.jobs.container.JobProgression;
 import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.config.AchievementMap;
 import com.hm.achievement.db.CacheManager;
+
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
  * Listener class to deal with Jobs Reborn achievements.
@@ -34,11 +33,7 @@ public class JobsRebornListener extends AbstractListener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onJob(JobsLevelUpEvent event) {
-		if (event.getPlayer() == null) {
-			return;
-		}
-
-		// Grab the player from the JobsPlayer
+		// Get the Player from the JobsPlayer.
 		Player player = event.getPlayer().getPlayer();
 		if (player == null) {
 			return;

@@ -1,4 +1,4 @@
-package com.hm.achievement.utils;
+package com.hm.achievement.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -15,9 +16,9 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.WordUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
@@ -27,7 +28,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
+import com.hm.achievement.AdvancedAchievements;
 import com.hm.achievement.domain.Reward;
+import com.hm.achievement.utils.MaterialHelper;
+import com.hm.achievement.utils.StringHelper;
 
 import net.milkbowl.vault.economy.Economy;
 
@@ -43,6 +47,7 @@ public class RewardParser {
 
 	private final YamlConfiguration mainConfig;
 	private final YamlConfiguration langConfig;
+	private final Server server;
 	private final MaterialHelper materialHelper;
 	private final int serverVersion;
 
@@ -51,14 +56,15 @@ public class RewardParser {
 
 	@Inject
 	public RewardParser(@Named("main") YamlConfiguration mainConfig, @Named("lang") YamlConfiguration langConfig,
-			MaterialHelper materialHelper, int serverVersion) {
+			AdvancedAchievements advancedAchievements, MaterialHelper materialHelper, int serverVersion) {
 		this.mainConfig = mainConfig;
 		this.langConfig = langConfig;
 		this.materialHelper = materialHelper;
 		this.serverVersion = serverVersion;
+		this.server = advancedAchievements.getServer();
 		// Try to retrieve an Economy instance from Vault.
-		if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
-			RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
+		if (server.getPluginManager().isPluginEnabled("Vault")) {
+			RegisteredServiceProvider<Economy> rsp = server.getServicesManager().getRegistration(Economy.class);
 			if (rsp != null) {
 				economy = rsp.getProvider();
 			}
@@ -69,12 +75,6 @@ public class RewardParser {
 		return economy;
 	}
 
-	/**
-	 * Constructs the listing of an achievement's rewards with strings coming from language file.
-	 *
-	 * @param path achievement path
-	 * @return type(s) of the achievement reward as an array of strings
-	 */
 	public List<Reward> parseRewards(String path) {
 		ConfigurationSection configSection = mainConfig.getConfigurationSection(path + ".Reward");
 		if (configSection == null) {
@@ -121,9 +121,8 @@ public class RewardParser {
 		List<String> chatTexts = new ArrayList<>();
 		List<ItemStack> itemStacks = new ArrayList<>();
 
-		String itemString = configSection.getString("Item", configSection.getString("Items", ""));
-		String[] items = MULTIPLE_REWARDS_SPLITTER.split(StringUtils.normalizeSpace(itemString));
-		for (String item : items) {
+		String itemPath = configSection.contains("Item") ? "Item" : "Items";
+		for (String item : getOneOrManyConfigStrings(configSection, itemPath)) {
 			if (!item.contains(" ")) {
 				continue;
 			}
@@ -133,28 +132,29 @@ public class RewardParser {
 			if (rewardMaterial.isPresent()) {
 				int amount = NumberUtils.toInt(parts[1], 1);
 				ItemStack itemStack = new ItemStack(rewardMaterial.get(), amount);
-				ItemMeta itemMeta = itemStack.getItemMeta();
 				String name = StringUtils.join(parts, " ", 2, parts.length);
 				if (name.isEmpty()) {
-					name = getItemName(itemStack);
-				} else {
+					// Convert the item stack material to an item name in a readable format.
+					name = WordUtils.capitalizeFully(itemStack.getType().toString().replace('_', ' '));
+				} else if (itemStack.hasItemMeta()) {
+					ItemMeta itemMeta = itemStack.getItemMeta();
 					itemMeta.setDisplayName(name);
+					itemStack.setItemMeta(itemMeta);
 				}
 				listTexts.add(StringUtils.replaceEach(langConfig.getString("list-reward-item"),
 						new String[] { "AMOUNT", "ITEM" }, new String[] { Integer.toString(amount), name }));
-				chatTexts.add(StringUtils.replaceEach(langConfig.getString("item-reward-received") + " ",
+				chatTexts.add(StringUtils.replaceEach(langConfig.getString("item-reward-received"),
 						new String[] { "AMOUNT", "ITEM" }, new String[] { Integer.toString(amount), name }));
-				itemStack.setItemMeta(itemMeta);
 				itemStacks.add(itemStack);
 			}
 		}
 		Consumer<Player> rewarder = player -> itemStacks.forEach(item -> {
 			ItemStack playerItem = item.clone();
 			ItemMeta itemMeta = playerItem.getItemMeta();
-			if (itemMeta.hasDisplayName()) {
+			if (itemMeta != null && itemMeta.hasDisplayName()) {
 				itemMeta.setDisplayName(StringHelper.replacePlayerPlaceholders(itemMeta.getDisplayName(), player));
+				playerItem.setItemMeta(itemMeta);
 			}
-			playerItem.setItemMeta(itemMeta);
 			if (player.getInventory().firstEmpty() != -1) {
 				player.getInventory().addItem(playerItem);
 			} else {
@@ -206,72 +206,29 @@ public class RewardParser {
 	}
 
 	private Reward parseCommandReward(ConfigurationSection configSection) {
-		List<String> listTexts = getCustomCommandMessages(configSection);
-		List<String> chatTexts = new ArrayList<>();
-		if (listTexts.isEmpty()) {
-			listTexts.add(langConfig.getString("list-reward-command"));
-			if (!langConfig.getString("command-reward").isEmpty()) {
-				chatTexts.add(langConfig.getString("command-reward"));
-			}
-		}
-		listTexts.stream()
+		String displayPath = configSection.contains("Command") ? "Command.Display" : "Commands.Display";
+		List<String> listTexts = getOneOrManyConfigStrings(configSection, displayPath);
+		List<String> chatTexts = listTexts.stream()
 				.map(message -> StringUtils.replace(langConfig.getString("custom-command-reward"), "MESSAGE", message))
-				.forEach(chatTexts::add);
-
-		Consumer<Player> rewarder = player -> getCommandRewards(configSection, player)
-				.forEach(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command));
-
+				.collect(Collectors.toList());
+		String executePath = configSection.contains("Command") ? "Command.Execute" : "Commands.Execute";
+		Consumer<Player> rewarder = player -> getOneOrManyConfigStrings(configSection, executePath).stream()
+				.map(command -> StringHelper.replacePlayerPlaceholders(command, player))
+				.forEach(command -> server.dispatchCommand(server.getConsoleSender(), command));
 		return new Reward(listTexts, chatTexts, rewarder);
 	}
 
-	/**
-	 * Returns the name of an item reward, in a readable format.
-	 *
-	 * @param item the item reward
-	 * @return the item name
-	 */
-	private String getItemName(ItemStack item) {
-		return WordUtils.capitalizeFully(item.getType().toString().replace('_', ' '));
-	}
-
-	/**
-	 * Extracts the list of commands to be executed as rewards.
-	 *
-	 * @param configSection achievement configuration path
-	 * @param player the player to parse commands for
-	 * @return the array containing the commands to be performed as a reward
-	 */
-	private List<String> getCommandRewards(ConfigurationSection configSection, Player player) {
-		String searchFrom = configSection.contains("Command") ? "Command" : "Commands";
-		if (configSection.isConfigurationSection(searchFrom)) {
-			searchFrom += ".Execute";
+	private List<String> getOneOrManyConfigStrings(ConfigurationSection configSection, String path) {
+		if (configSection.isList(path)) {
+			// Real YAML list.
+			return configSection.getStringList(path);
 		}
-
-		String commandReward = configSection.getString(searchFrom);
-		if (commandReward == null) {
-			return Collections.emptyList();
+		String configString = configSection.getString(path);
+		if (configString != null) {
+			// Either a list of strings separate by "; " (old configuration style), or a single string.
+			return Arrays.asList(MULTIPLE_REWARDS_SPLITTER.split(StringUtils.normalizeSpace(configString)));
 		}
-		// Multiple reward commands can be set, separated by a semicolon and space. Extra parsing needed.
-		return Arrays.asList(MULTIPLE_REWARDS_SPLITTER.split(StringHelper.replacePlayerPlaceholders(commandReward, player)));
-	}
-
-	/**
-	 * Extracts custom command message from config. Might be null.
-	 *
-	 * @param configSection achievement configuration path
-	 * @return the custom command message (null if not present)
-	 * @author tassu
-	 */
-	private List<String> getCustomCommandMessages(ConfigurationSection configSection) {
-		if (configSection.isList("Command.Display")) {
-			return configSection.getStringList("Command.Display");
-		}
-
-		List<String> messages = new ArrayList<>();
-		if (configSection.contains("Command.Display")) {
-			messages.add(configSection.getString("Command.Display"));
-		}
-		return messages;
+		return Collections.emptyList();
 	}
 
 }
