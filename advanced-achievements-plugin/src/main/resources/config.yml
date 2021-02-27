@@ -485,6 +485,19 @@ Connections:
     DisplayName: Good Choice
     Type: normal
 
+# Count player connections during the day; statistic increases at most once per day.
+Balance:
+  10000:
+    Message: You reached 10k
+    Name: balance_10k
+    DisplayName: 10k
+    Type: normal
+  100000:
+    Message: You reached 100k
+    Name: balance_100k
+    DisplayName: 100k
+    Type: normal
+
 # Count player deaths.
 Deaths:
   1:

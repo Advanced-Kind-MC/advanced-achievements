@@ -15,6 +15,7 @@ import com.hm.achievement.listener.QuitListener;
 import com.hm.achievement.listener.statistics.AdvancementsCompletedListener;
 import com.hm.achievement.listener.statistics.AnvilsListener;
 import com.hm.achievement.listener.statistics.ArrowsListener;
+import com.hm.achievement.listener.statistics.BalanceListener;
 import com.hm.achievement.listener.statistics.BedsListener;
 import com.hm.achievement.listener.statistics.BreaksListener;
 import com.hm.achievement.listener.statistics.BreedingListener;
@@ -292,4 +293,8 @@ public abstract class ReloadableModule {
 	@Binds
 	@IntoSet
 	abstract Reloadable bindMcMMOListener(McMMOListener mcMMOListener);
+
+	@Binds
+	@IntoSet
+	abstract Reloadable bindBalanceListener(BalanceListener balanceListener);
 }

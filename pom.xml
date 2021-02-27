@@ -138,6 +138,12 @@
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
+				<groupId>com.github.iconomy5legacy</groupId>
+				<artifactId>iConomy</artifactId>
+				<version>v5.10</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
 				<groupId>com.gmail.nossr50.mcMMO</groupId>
 				<artifactId>mcMMO</artifactId>
 				<version>2.1.174-SNAPSHOT</version>

@@ -151,6 +151,7 @@ list-unavailable-whilst-sleeping: "&c&lYou cannot open the Achievements List whi
 list-connections: "Connections"
 list-places: "Blocks Placed"
 list-breaks: "Blocks Broken"
+list-balance: "Balance"
 list-kills: "Entities Killed"
 list-crafts: "Items Crafted"
 list-playercommands: "Commands Entered"

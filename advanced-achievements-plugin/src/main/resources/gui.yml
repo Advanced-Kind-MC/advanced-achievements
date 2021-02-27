@@ -151,6 +151,8 @@ Commands:
   Item: bookshelf
 McMMO:
   Item: gold_ingot
+Balance:
+  Item: gold_nugget
 
 #======================================================================================================================#
 #                                                  FUTURE PAREMETERS                                                   #

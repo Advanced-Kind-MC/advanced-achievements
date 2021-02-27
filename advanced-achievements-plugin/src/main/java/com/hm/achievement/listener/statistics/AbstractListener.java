@@ -78,6 +78,20 @@ public abstract class AbstractListener extends StatisticIncreaseHandler implemen
 	 * found.
 	 * 
 	 * @param player
+	 * @param incrementValue
+	 */
+	void increaseStatisticAndAwardAchievementsIfAvailable(Player player, int incrementValue) {
+		if (shouldIncreaseBeTakenIntoAccount(player, category)) {
+			long amount = cacheManager.getAndIncreaseStatisticAmount((NormalAchievements) category, player.getUniqueId(), incrementValue);
+			checkThresholdsAndAchievements(player, category, amount);
+		}
+	}
+
+	/**
+	 * Sets the statistic in the database for a MultipleAchievement and awards an achievement if an available one is
+	 * found.
+	 * 
+	 * @param player
 	 * @param subcategories
 	 * @param incrementValue
 	 */

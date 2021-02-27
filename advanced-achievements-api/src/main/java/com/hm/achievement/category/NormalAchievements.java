@@ -15,6 +15,7 @@ public enum NormalAchievements implements Category {
 	ARROWS("Arrows"),
 	SNOWBALLS("Snowballs"),
 	EGGS("Eggs"),
+	BALANCE("Balance"),
 	FISH("Fish"),
 	TREASURES("Treasures"),
 	ITEMBREAKS("ItemBreaks"),

@@ -2,7 +2,7 @@ name: AdvancedAchievements
 main: com.hm.achievement.AdvancedAchievements
 version: 7.0.0
 author: DarkPyves
-softdepend: [Vault,PetMaster,BungeeTabListPlus,Essentials,PlaceholderAPI,Jobs,mcMMO,AdvancedAFK]
+softdepend: [Vault,PetMaster,BungeeTabListPlus,Essentials,PlaceholderAPI,Jobs,mcMMO,AdvancedAFK,iConomy]
 description: Advanced Achievements enables unique and challenging achievements. Try to collect as many as you can, earn rewards, climb the rankings and receive RP books!
 website: https://github.com/PyvesB/advanced-achievements
 api-version: 1.13
@@ -88,6 +88,7 @@ permissions:
       achievement.count.connections: true
       achievement.count.advancementscompleted: true
       achievement.count.arrows: true
+      achievement.count.balance: true
       achievement.count.beds: true
       achievement.count.consumedpotions: true
       achievement.count.eatenitems: true
@@ -149,6 +150,9 @@ permissions:
     default: true
   achievement.count.beds:
     description: Allows bed statistics in database to increase.
+    default: true
+  achievement.count.balance:
+    description: Allows balance statistics in database to increase.
     default: true
   achievement.count.consumedpotions:
     description: Allows consumed potions statistics in database to increase.

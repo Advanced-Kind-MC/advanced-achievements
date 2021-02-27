@@ -129,6 +129,10 @@
 			<artifactId>Jobs</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.github.iconomy5legacy</groupId>
+			<artifactId>iConomy</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.gmail.nossr50.mcMMO</groupId>
 			<artifactId>mcMMO</artifactId>
 		</dependency>

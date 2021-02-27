@@ -183,6 +183,27 @@ public class CacheManager implements Cleanable {
 		}
 		return statistic.getValue();
 	}
+	/**
+	 * Sets the statistic for a NormalAchievement to the given value if it is higher than the current one and returns the updated statistic value.
+	 * Calls the database if not found in the cache.
+	 *
+	 * @param category
+	 * @param player
+	 * @param value
+	 * @return the updated statistic value
+	 */
+	public long getAndIncreaseStatisticAmount(NormalAchievements category, UUID player, int value) {
+		Map<UUID, CachedStatistic> cache = getHashMap(category);
+		CachedStatistic statistic = cache.get(player);
+		if (statistic == null) {
+			statistic = new CachedStatistic(databaseManager.getNormalAchievementAmount(player, category), true);
+			cache.put(player, statistic);
+		}
+		if(statistic.getValue() < value) {
+			statistic.setValue(value);
+		}
+		return statistic.getValue();
+	}
 	
 	/**
 	 * Sets the statistic for a MultipleAchievement to the given value if it is higher than the current one and returns the updated statistic value.
