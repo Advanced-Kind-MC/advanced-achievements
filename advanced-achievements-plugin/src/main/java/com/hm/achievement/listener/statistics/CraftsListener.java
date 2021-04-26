@@ -1,6 +1,7 @@
 package com.hm.achievement.listener.statistics;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,8 +61,9 @@ public class CraftsListener extends AbstractListener {
 			return;
 		}
 
-		Set<String> foundAchievements = findAchievementsByCategoryAndName(craftName + ':' + item.getDurability());
-		foundAchievements.addAll(findAchievementsByCategoryAndName(craftName));
+		Set<String> subcategories = new HashSet<>();
+		addMatchingSubcategories(subcategories, craftName + ':' + item.getDurability());
+		addMatchingSubcategories(subcategories, craftName);
 
 		int eventAmount = item.getAmount();
 		if (event.isShiftClick()) {
@@ -82,7 +84,7 @@ public class CraftsListener extends AbstractListener {
 			}
 		}
 
-		updateStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, eventAmount);
+		updateStatisticAndAwardAchievementsIfAvailable(player, subcategories, eventAmount);
 	}
 
 	/**

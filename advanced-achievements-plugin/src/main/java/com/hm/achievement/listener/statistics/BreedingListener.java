@@ -1,5 +1,6 @@
 package com.hm.achievement.listener.statistics;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -39,7 +40,8 @@ public class BreedingListener extends AbstractListener {
 			return;
 		}
 
-		Set<String> foundAchievements = findAchievementsByCategoryAndName(mobName);
-		updateStatisticAndAwardAchievementsIfAvailable((Player) event.getBreeder(), foundAchievements, 1);
+		Set<String> subcategories = new HashSet<>();
+		addMatchingSubcategories(subcategories, mobName);
+		updateStatisticAndAwardAchievementsIfAvailable((Player) event.getBreeder(), subcategories, 1);
 	}
 }

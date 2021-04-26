@@ -1,9 +1,5 @@
 package com.hm.achievement.listener;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -20,9 +16,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import com.hm.achievement.AdvancedAchievements;
 import com.hm.achievement.advancement.AchievementAdvancement;
 import com.hm.achievement.advancement.AdvancementManager;
-import com.hm.achievement.db.AbstractDatabaseManager;
 import com.hm.achievement.db.CacheManager;
-import com.hm.achievement.lifecycle.Cleanable;
 
 /**
  * Listener class to deal with advancements for Minecraft 1.12+. This class uses delays processing of tasks to avoid
@@ -32,27 +26,17 @@ import com.hm.achievement.lifecycle.Cleanable;
  *
  */
 @Singleton
-public class JoinListener implements Listener, Cleanable {
-
-	private final Set<UUID> playersConnectionProcessed = new HashSet<>();
-	private final AdvancedAchievements advancedAchievements;
-	private final AbstractDatabaseManager databaseManager;
-	private final CacheManager cacheManager;
+public class JoinListener implements Listener {
 
 	private final int serverVersion;
+	private final AdvancedAchievements advancedAchievements;
+	private final CacheManager cacheManager;
 
 	@Inject
-	public JoinListener(int serverVersion, AdvancedAchievements advancedAchievements,
-			AbstractDatabaseManager databaseManager, CacheManager cacheManager) {
+	public JoinListener(int serverVersion, AdvancedAchievements advancedAchievements, CacheManager cacheManager) {
 		this.serverVersion = serverVersion;
 		this.advancedAchievements = advancedAchievements;
-		this.databaseManager = databaseManager;
 		this.cacheManager = cacheManager;
-	}
-
-	@Override
-	public void cleanPlayerData(UUID uuid) {
-		playersConnectionProcessed.remove(uuid);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -70,7 +54,7 @@ public class JoinListener implements Listener, Cleanable {
 	 */
 	private void scheduleReceivedCacheLoad(Player player) {
 		Bukkit.getScheduler().runTaskAsynchronously(advancedAchievements,
-				() -> cacheManager.getPlayerTotalAchievements(player.getUniqueId()));
+				() -> cacheManager.getPlayerAchievements(player.getUniqueId()));
 
 	}
 
@@ -89,16 +73,16 @@ public class JoinListener implements Listener, Cleanable {
 			}
 			Advancement advancement = Bukkit.getAdvancement(new NamespacedKey(advancedAchievements,
 					AdvancementManager.ADVANCED_ACHIEVEMENTS_PARENT));
-			// If no parent, user has not used /aach generate, do not do anything.
+			// If no parent, /aach generate has not been run on server, do not do anything.
 			if (advancement != null) {
 				AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
 				if (!advancementProgress.isDone()) {
 					advancementProgress.awardCriteria(AchievementAdvancement.CRITERIA_NAME);
 				}
-				for (String achName : databaseManager.getPlayerAchievementNames(player.getUniqueId())) {
+				for (String name : cacheManager.getPlayerAchievements(player.getUniqueId())) {
+					// May be null if /aach generate has not been called since that achievement was added to the config.
 					advancement = Bukkit.getAdvancement(new NamespacedKey(advancedAchievements,
-							AdvancementManager.getKey(achName)));
-					// Matching advancement might not exist if user has not called /aach generate.
+							AdvancementManager.getKey(name)));
 					if (advancement != null) {
 						advancementProgress = player.getAdvancementProgress(advancement);
 						if (!advancementProgress.isDone()) {

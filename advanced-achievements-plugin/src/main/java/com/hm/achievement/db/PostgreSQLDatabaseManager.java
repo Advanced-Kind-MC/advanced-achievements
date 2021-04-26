@@ -3,7 +3,6 @@ package com.hm.achievement.db;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -13,6 +12,7 @@ import javax.inject.Named;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.hm.achievement.category.NormalAchievements;
+import com.hm.achievement.db.data.ConnectionInformation;
 
 /**
  * Class used to handle a PosgreSQL database. Note that some query methods are overriden as the SQL syntax is different
@@ -41,11 +41,11 @@ public class PostgreSQLDatabaseManager extends AbstractRemoteDatabaseManager {
 
 	@Override
 	public void registerAchievement(UUID uuid, String achName, long time) {
-		// PostgreSQL has no REPLACE operator. We have to use the INSERT ... ON CONFLICT construct, which is available
-		// for PostgreSQL 9.5+.
-		String sql = "INSERT INTO " + prefix + "achievements VALUES (?,?,?)"
-				+ " ON CONFLICT (playername,achievement) DO UPDATE SET (date)=(?)";
 		((SQLWriteOperation) () -> {
+			// PostgreSQL has no REPLACE operator. We have to use the INSERT ... ON CONFLICT construct, which is
+			// available for PostgreSQL 9.5+.
+			String sql = "INSERT INTO " + prefix + "achievements VALUES (?,?,?) ON CONFLICT (playername,achievement) "
+					+ "DO UPDATE SET (date)=(?)";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
@@ -58,33 +58,22 @@ public class PostgreSQLDatabaseManager extends AbstractRemoteDatabaseManager {
 	}
 
 	@Override
-	public int updateAndGetConnection(UUID uuid, String date) {
-		String dbName = NormalAchievements.CONNECTIONS.toDBName();
-		String sqlRead = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ?";
-		return ((SQLReadOperation<Integer>) () -> {
+	public void updateConnectionInformation(UUID uuid, long connections) {
+		((SQLWriteOperation) () -> {
+			// PostgreSQL has no REPLACE operator. We have to use the INSERT ... ON CONFLICT construct, which is
+			// available for PostgreSQL 9.5+.
+			String sql = "INSERT INTO " + prefix + NormalAchievements.CONNECTIONS.toDBName() + " VALUES (?,?,?) ON"
+					+ " CONFLICT (playername) DO UPDATE SET (" + NormalAchievements.CONNECTIONS.toDBName() + ",date)=(?,?)";
 			Connection conn = getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sqlRead)) {
-				ps.setString(1, uuid.toString());
-				try (ResultSet rs = ps.executeQuery()) {
-					int connections = rs.next() ? rs.getInt(dbName) + 1 : 1;
-					// PostgreSQL has no REPLACE operator. We have to use the INSERT ... ON CONFLICT construct, which is
-					// available for PostgreSQL 9.5+.
-					String sqlWrite = "INSERT INTO " + prefix + dbName + " VALUES (?,?,?)"
-							+ " ON CONFLICT (playername) DO UPDATE SET (" + dbName + ",date)=(?,?)";
-					((SQLWriteOperation) () -> {
-						Connection writeConn = getSQLConnection();
-						try (PreparedStatement writePrep = writeConn.prepareStatement(sqlWrite)) {
-							writePrep.setString(1, uuid.toString());
-							writePrep.setInt(2, connections);
-							writePrep.setString(3, date);
-							writePrep.setInt(4, connections);
-							writePrep.setString(5, date);
-							writePrep.execute();
-						}
-					}).executeOperation(pool, logger, "updating connection date and count");
-					return connections;
-				}
+			try (PreparedStatement writePrep = conn.prepareStatement(sql)) {
+				String date = ConnectionInformation.today();
+				writePrep.setString(1, uuid.toString());
+				writePrep.setLong(2, connections);
+				writePrep.setString(3, date);
+				writePrep.setLong(4, connections);
+				writePrep.setString(5, date);
+				writePrep.execute();
 			}
-		}).executeOperation("handling connection event");
+		}).executeOperation(pool, logger, "updating connection date and count");
 	}
 }

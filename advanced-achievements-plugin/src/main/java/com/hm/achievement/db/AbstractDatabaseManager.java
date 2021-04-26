@@ -31,6 +31,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.category.NormalAchievements;
 import com.hm.achievement.db.data.AwardedDBAchievement;
+import com.hm.achievement.db.data.ConnectionInformation;
 import com.hm.achievement.exception.PluginLoadError;
 import com.hm.achievement.lifecycle.Reloadable;
 
@@ -182,8 +183,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @return array list with Name parameters
 	 */
 	public Set<String> getPlayerAchievementNames(UUID uuid) {
-		String sql = "SELECT achievement FROM " + prefix + "achievements WHERE playername = ?";
 		return ((SQLReadOperation<Set<String>>) () -> {
+			String sql = "SELECT achievement FROM " + prefix + "achievements WHERE playername = ?";
 			Set<String> achievementNamesList = new HashSet<>();
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -207,8 +208,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @return date represented as a string
 	 */
 	public String getPlayerAchievementDate(UUID uuid, String achName) {
-		String sql = "SELECT date FROM " + prefix + "achievements WHERE playername = ? AND achievement = ?";
 		return ((SQLReadOperation<String>) () -> {
+			String sql = "SELECT date FROM " + prefix + "achievements WHERE playername = ? AND achievement = ?";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
@@ -230,8 +231,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @return map containing number of achievements for every players
 	 */
 	public Map<UUID, Integer> getPlayersAchievementsAmount() {
-		String sql = "SELECT playername, COUNT(*) FROM " + prefix + "achievements GROUP BY playername";
 		return ((SQLReadOperation<Map<UUID, Integer>>) () -> {
+			String sql = "SELECT playername, COUNT(*) FROM " + prefix + "achievements GROUP BY playername";
 			Map<UUID, Integer> achievementAmounts = new HashMap<>();
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -250,38 +251,19 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	}
 
 	/**
-	 * Gets the total number of achievements received by a player, using an UUID.
-	 *
-	 * @param uuid
-	 * @return number of achievements
-	 */
-	public int getPlayerAchievementsAmount(UUID uuid) {
-		String sql = "SELECT COUNT(*) FROM " + prefix + "achievements WHERE playername = ?";
-		return ((SQLReadOperation<Integer>) () -> {
-			Connection conn = getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sql)) {
-				ps.setString(1, uuid.toString());
-				try (ResultSet rs = ps.executeQuery()) {
-					rs.next();
-					return rs.getInt(1);
-				}
-			}
-		}).executeOperation("counting a player's achievements");
-	}
-
-	/**
 	 * Constructs a mapping of players with the most achievements over a given period.
 	 *
 	 * @param start
 	 * @return LinkedHashMap with keys corresponding to player UUIDs and values corresponding to their achievement count
 	 */
 	public Map<String, Integer> getTopList(long start) {
-		// Either consider all the achievements or only those received after the start date.
-		String sql = start == 0L
-				? "SELECT playername, COUNT(*) FROM " + prefix + "achievements GROUP BY playername ORDER BY COUNT(*) DESC"
-				: "SELECT playername, COUNT(*) FROM " + prefix
-						+ "achievements WHERE date > ? GROUP BY playername ORDER BY COUNT(*) DESC";
 		return ((SQLReadOperation<Map<String, Integer>>) () -> {
+			// Either consider all the achievements or only those received after the start date.
+			String sql = start == 0L
+					? "SELECT playername, COUNT(*) FROM " + prefix
+							+ "achievements GROUP BY playername ORDER BY COUNT(*) DESC"
+					: "SELECT playername, COUNT(*) FROM " + prefix
+							+ "achievements WHERE date > ? GROUP BY playername ORDER BY COUNT(*) DESC";
 			Map<String, Integer> topList = new LinkedHashMap<>();
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -307,8 +289,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @param epochMs Moment the achievement was registered at.
 	 */
 	public void registerAchievement(UUID uuid, String achName, long epochMs) {
-		String sql = "REPLACE INTO " + prefix + "achievements VALUES (?,?,?)";
 		((SQLWriteOperation) () -> {
+			String sql = "REPLACE INTO " + prefix + "achievements VALUES (?,?,?)";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
@@ -320,27 +302,6 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	}
 
 	/**
-	 * Checks whether player has received a specific achievement.
-	 *
-	 * @param uuid
-	 * @param achName
-	 * @return true if achievement found in database, false otherwise
-	 */
-	public boolean hasPlayerAchievement(UUID uuid, String achName) {
-		String sql = "SELECT achievement FROM " + prefix + "achievements WHERE playername = ? AND achievement = ?";
-		return ((SQLReadOperation<Boolean>) () -> {
-			Connection conn = getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sql)) {
-				ps.setString(1, uuid.toString());
-				ps.setString(2, achName);
-				try (ResultSet rs = ps.executeQuery()) {
-					return rs.next();
-				}
-			}
-		}).executeOperation("checking for an achievement");
-	}
-
-	/**
 	 * Gets a player's NormalAchievement statistic.
 	 *
 	 * @param uuid
@@ -348,15 +309,15 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @return statistic
 	 */
 	public long getNormalAchievementAmount(UUID uuid, NormalAchievements category) {
-		String dbName = category.toDBName();
-		String sql = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ?";
 		return ((SQLReadOperation<Long>) () -> {
+			String dbName = category.toDBName();
+			String sql = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ?";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						return rs.getLong(dbName);
+						return rs.getLong(1);
 					}
 				}
 			}
@@ -373,17 +334,17 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @return statistic
 	 */
 	public long getMultipleAchievementAmount(UUID uuid, MultipleAchievements category, String subcategory) {
-		String dbName = category.toDBName();
-		String sql = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ? AND "
-				+ category.toSubcategoryDBName() + " = ?";
 		return ((SQLReadOperation<Long>) () -> {
+			String dbName = category.toDBName();
+			String sql = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ? AND "
+					+ category.toSubcategoryDBName() + " = ?";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
 				ps.setString(2, subcategory);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						return rs.getLong(dbName);
+						return rs.getLong(1);
 					}
 				}
 			}
@@ -392,82 +353,45 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	}
 
 	/**
-	 * Returns a player's number of connections on separate days (used by GUI).
+	 * Returns a player's last connection data and the total number of connections.
 	 *
 	 * @param uuid
-	 * @return connections statistic
+	 * @return the connection information
 	 */
-	public int getConnectionsAmount(UUID uuid) {
-		String dbName = NormalAchievements.CONNECTIONS.toDBName();
-		String sql = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ?";
-		return ((SQLReadOperation<Integer>) () -> {
+	public ConnectionInformation getConnectionInformation(UUID uuid) {
+		return ((SQLReadOperation<ConnectionInformation>) () -> {
+			String dbName = NormalAchievements.CONNECTIONS.toDBName();
+			String sql = "SELECT " + dbName + ", date FROM " + prefix + dbName + " WHERE playername = ?";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						return rs.getInt(dbName);
+						return new ConnectionInformation(rs.getString(2), rs.getLong(1));
 					}
 				}
 			}
-			return 0;
-		}).executeOperation("retrieving connection statistics");
+			return new ConnectionInformation();
+		}).executeOperation("retrieving a player's connection information");
 	}
 
 	/**
-	 * Gets a player's last connection date.
+	 * Updates a player's number of connections and last connection date.
 	 *
 	 * @param uuid
-	 * @return String with date
+	 * @param connections
 	 */
-	public String getPlayerConnectionDate(UUID uuid) {
-		String dbName = NormalAchievements.CONNECTIONS.toDBName();
-		String sql = "SELECT date FROM " + prefix + dbName + " WHERE playername = ?";
-		return ((SQLReadOperation<String>) () -> {
+	public void updateConnectionInformation(UUID uuid, long connections) {
+		((SQLWriteOperation) () -> {
+			String sql = "REPLACE INTO " + prefix + NormalAchievements.CONNECTIONS.toDBName() + " VALUES (?,?,?)";
 			Connection conn = getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sql)) {
-				ps.setString(1, uuid.toString());
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						return rs.getString("date");
-					}
-				}
+			try (PreparedStatement writePrep = conn.prepareStatement(sql)) {
+				writePrep.setString(1, uuid.toString());
+				writePrep.setLong(2, connections);
+				writePrep.setString(3, ConnectionInformation.today());
+				writePrep.execute();
 			}
-			return null;
-		}).executeOperation("retrieving a player's last connection date");
-	}
-
-	/**
-	 * Updates a player's number of connections and last connection date and returns number of connections (used by
-	 * Connections listener).
-	 *
-	 * @param uuid
-	 * @param date
-	 * @return connections statistic
-	 */
-	public int updateAndGetConnection(UUID uuid, String date) {
-		String dbName = NormalAchievements.CONNECTIONS.toDBName();
-		String sqlRead = "SELECT " + dbName + " FROM " + prefix + dbName + " WHERE playername = ?";
-		return ((SQLReadOperation<Integer>) () -> {
-			Connection conn = getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sqlRead)) {
-				ps.setString(1, uuid.toString());
-				try (ResultSet rs = ps.executeQuery()) {
-					int connections = rs.next() ? rs.getInt(dbName) + 1 : 1;
-					String sqlWrite = "REPLACE INTO " + prefix + dbName + " VALUES (?,?,?)";
-					((SQLWriteOperation) () -> {
-						Connection writeConn = getSQLConnection();
-						try (PreparedStatement writePrep = writeConn.prepareStatement(sqlWrite)) {
-							writePrep.setString(1, uuid.toString());
-							writePrep.setInt(2, connections);
-							writePrep.setString(3, date);
-							writePrep.execute();
-						}
-					}).executeOperation(pool, logger, "updating connection date and count");
-					return connections;
-				}
-			}
-		}).executeOperation("handling connection event");
+		}).executeOperation(pool, logger, "updating connection date and count");
 	}
 
 	/**
@@ -477,8 +401,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @param achName
 	 */
 	public void deletePlayerAchievement(UUID uuid, String achName) {
-		String sql = "DELETE FROM " + prefix + "achievements WHERE playername = ? AND achievement = ?";
 		((SQLWriteOperation) () -> {
+			String sql = "DELETE FROM " + prefix + "achievements WHERE playername = ? AND achievement = ?";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
@@ -494,8 +418,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @param uuid
 	 */
 	public void deleteAllPlayerAchievements(UUID uuid) {
-		String sql = "DELETE FROM " + prefix + "achievements WHERE playername = ?";
 		((SQLWriteOperation) () -> {
+			String sql = "DELETE FROM " + prefix + "achievements WHERE playername = ?";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
@@ -510,8 +434,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @param uuid
 	 */
 	public void clearConnection(UUID uuid) {
-		String sql = "DELETE FROM " + prefix + "connections WHERE playername = '" + uuid + "'";
 		((SQLWriteOperation) () -> {
+			String sql = "DELETE FROM " + prefix + "connections WHERE playername = '" + uuid + "'";
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.execute();
@@ -530,10 +454,10 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 	 * @return ArrayList containing all information about achievements awarded to a player.
 	 */
 	public List<AwardedDBAchievement> getPlayerAchievementsList(UUID uuid) {
-		// Either oldest date to newest one or newest date to oldest one.
-		String sql = "SELECT * FROM " + prefix + "achievements WHERE playername = ? ORDER BY date "
-				+ (configBookChronologicalOrder ? "ASC" : "DESC");
 		return ((SQLReadOperation<List<AwardedDBAchievement>>) () -> {
+			// Either oldest date to newest one or newest date to oldest one.
+			String sql = "SELECT achievement, date FROM " + prefix + "achievements WHERE playername = ? ORDER BY date "
+					+ (configBookChronologicalOrder ? "ASC" : "DESC");
 			List<AwardedDBAchievement> achievements = new ArrayList<>();
 			Connection conn = getSQLConnection();
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -541,8 +465,8 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 				ps.setString(1, uuid.toString());
 				try (ResultSet rs = ps.executeQuery()) {
 					while (rs.next()) {
-						Timestamp dateAwarded = rs.getTimestamp(3);
-						achievements.add(new AwardedDBAchievement(uuid, rs.getString(2), dateAwarded.getTime(),
+						Timestamp dateAwarded = rs.getTimestamp(2);
+						achievements.add(new AwardedDBAchievement(uuid, rs.getString(1), dateAwarded.getTime(),
 								dateFormat.format(dateAwarded)));
 					}
 				}
@@ -572,12 +496,12 @@ public abstract class AbstractDatabaseManager implements Reloadable {
 					while (rs.next()) {
 						UUID uuid;
 						try {
-							String uuidString = rs.getString("playername");
+							String uuidString = rs.getString(1);
 							uuid = UUID.fromString(uuidString);
 						} catch (IllegalArgumentException improperUUIDFormatException) {
 							continue;
 						}
-						Date dateAwarded = new Date(rs.getTimestamp("date").getTime());
+						Date dateAwarded = new Date(rs.getTimestamp(2).getTime());
 						achievements.add(new AwardedDBAchievement(uuid, achievementName, dateAwarded.getTime(),
 								dateFormat.format(dateAwarded)));
 					}

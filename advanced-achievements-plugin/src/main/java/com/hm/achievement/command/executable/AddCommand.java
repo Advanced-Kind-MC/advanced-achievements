@@ -1,6 +1,7 @@
 package com.hm.achievement.command.executable;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.category.NormalAchievements;
 import com.hm.achievement.config.AchievementMap;
+import com.hm.achievement.db.AbstractDatabaseManager;
 import com.hm.achievement.db.CacheManager;
 import com.hm.achievement.utils.StatisticIncreaseHandler;
 import com.hm.achievement.utils.StringHelper;
@@ -31,6 +33,7 @@ public class AddCommand extends AbstractParsableCommand {
 
 	private static final long MILLIS_PER_HOUR = TimeUnit.HOURS.toMillis(1);
 
+	private final AbstractDatabaseManager databaseManager;
 	private final CacheManager cacheManager;
 	private final StatisticIncreaseHandler statisticIncreaseHandler;
 
@@ -41,9 +44,10 @@ public class AddCommand extends AbstractParsableCommand {
 
 	@Inject
 	public AddCommand(@Named("main") YamlConfiguration mainConfig, @Named("lang") YamlConfiguration langConfig,
-			StringBuilder pluginHeader, CacheManager cacheManager, StatisticIncreaseHandler statisticIncreaseHandler,
-			AchievementMap achievementMap) {
+			StringBuilder pluginHeader, AbstractDatabaseManager databaseManager, CacheManager cacheManager,
+			StatisticIncreaseHandler statisticIncreaseHandler, AchievementMap achievementMap) {
 		super(mainConfig, langConfig, pluginHeader);
+		this.databaseManager = databaseManager;
 		this.cacheManager = cacheManager;
 		this.statisticIncreaseHandler = statisticIncreaseHandler;
 		this.achievementMap = achievementMap;
@@ -68,29 +72,29 @@ public class AddCommand extends AbstractParsableCommand {
 		int valueToAdd = Integer.parseInt(args[1]);
 		Set<String> categorySubcategories = achievementMap.getCategorySubcategories();
 		if (categorySubcategories.contains(args[2])) {
+			UUID uuid = player.getUniqueId();
 			if (args[2].contains(".")) {
 				MultipleAchievements category = MultipleAchievements.getByName(StringUtils.substringBefore(args[2], "."));
 				String subcategory = StringUtils.substringAfter(args[2], ".");
-				long amount = cacheManager.getAndIncrementStatisticAmount(category, subcategory, player.getUniqueId(),
-						valueToAdd);
+				long amount = cacheManager.getAndIncrementStatisticAmount(category, subcategory, uuid, valueToAdd);
 				statisticIncreaseHandler.checkThresholdsAndAchievements(player, category, subcategory, amount);
-				sender.sendMessage(StringUtils.replaceEach(langStatisticIncreased,
-						new String[] { "ACH", "AMOUNT", "PLAYER" }, new String[] { args[2], args[1], args[3] }));
-			} else if (!NormalAchievements.CONNECTIONS.toString().equals(args[2])) {
+			} else {
 				NormalAchievements category = NormalAchievements.getByName(args[2]);
 				long amount;
 				if (category == NormalAchievements.PLAYEDTIME) {
 					// Thresholds in the configuration are in hours, underlying statistics are millis.
 					valueToAdd = (int) (valueToAdd * MILLIS_PER_HOUR);
-					amount = cacheManager.getAndIncrementStatisticAmount(category, player.getUniqueId(), valueToAdd)
-							/ MILLIS_PER_HOUR;
+					amount = cacheManager.getAndIncrementStatisticAmount(category, uuid, valueToAdd) / MILLIS_PER_HOUR;
+				} else if (category == NormalAchievements.CONNECTIONS) {
+					amount = databaseManager.getNormalAchievementAmount(uuid, NormalAchievements.CONNECTIONS) + valueToAdd;
+					databaseManager.updateConnectionInformation(uuid, amount);
 				} else {
-					amount = cacheManager.getAndIncrementStatisticAmount(category, player.getUniqueId(), valueToAdd);
+					amount = cacheManager.getAndIncrementStatisticAmount(category, uuid, valueToAdd);
 				}
 				statisticIncreaseHandler.checkThresholdsAndAchievements(player, category, amount);
-				sender.sendMessage(StringUtils.replaceEach(langStatisticIncreased,
-						new String[] { "ACH", "AMOUNT", "PLAYER" }, new String[] { args[2], args[1], args[3] }));
 			}
+			sender.sendMessage(StringUtils.replaceEach(langStatisticIncreased, new String[] { "ACH", "AMOUNT", "PLAYER" },
+					new String[] { args[2], args[1], args[3] }));
 		} else {
 			sender.sendMessage(StringUtils.replaceEach(langCategoryDoesNotExist, new String[] { "CAT", "CLOSEST_MATCH" },
 					new String[] { args[2], StringHelper.getClosestMatch(args[2], categorySubcategories) }));

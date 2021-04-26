@@ -1,5 +1,7 @@
 package com.hm.achievement.listener.statistics;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -26,8 +28,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class JobsRebornListener extends AbstractListener {
 
 	@Inject
-	public JobsRebornListener(@Named("main") YamlConfiguration mainConfig, int serverVersion, AchievementMap achievementMap,
-			CacheManager cacheManager) {
+	public JobsRebornListener(@Named("main") YamlConfiguration mainConfig, int serverVersion,
+			AchievementMap achievementMap, CacheManager cacheManager) {
 		super(MultipleAchievements.JOBSREBORN, mainConfig, serverVersion, achievementMap, cacheManager);
 	}
 
@@ -38,14 +40,7 @@ public class JobsRebornListener extends AbstractListener {
 		if (player == null) {
 			return;
 		}
-
-		String jobName = event.getJobName().toLowerCase();
-		if (!player.hasPermission(category.toChildPermName(jobName))) {
-			return;
-		}
-
-		Set<String> foundAchievements = findAchievementsByCategoryAndName(jobName);
-		increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, event.getLevel());
+		updateJob(player, event.getJobName(), event.getLevel());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -60,14 +55,21 @@ public class JobsRebornListener extends AbstractListener {
 			return;
 		}
 
-		for(JobProgression progression : Jobs.getPlayerManager().getPlayerInfo(event.getPlayer().getUniqueId()).getJobsPlayer().progression){
-			String jobName = progression.getJob().getName().toLowerCase();
-
-			if (!player.hasPermission(category.toChildPermName(jobName))) {
-				return;
-			}
-			Set<String> foundAchievements = findAchievementsByCategoryAndName(jobName);
-			increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, progression.getLevel());
+		for (JobProgression progression : Jobs.getPlayerManager().getPlayerInfo(event.getPlayer().getUniqueId())
+				.getJobsPlayer().progression) {
+			updateJob(player, progression.getJob().getName(), progression.getLevel());
 		}
+	}
+
+	private void updateJob(Player player, String jobName, int level) {
+		jobName = jobName.toLowerCase();
+
+		if (!player.hasPermission(category.toChildPermName(jobName))) {
+			return;
+		}
+
+		Set<String> subcategories = new HashSet<>();
+		addMatchingSubcategories(subcategories, jobName);
+		subcategories.forEach(key -> increaseStatisticAndAwardAchievementsIfAvailable(player, subcategories, level));
 	}
 }

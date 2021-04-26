@@ -46,24 +46,24 @@ public class KillsListener extends AbstractListener {
 		String mobType = (entity instanceof Creeper && ((Creeper) entity).isPowered()) ? "poweredcreeper"
 				: entity.getType().name().toLowerCase();
 
-		Set<String> foundAchievements = new HashSet<>();
+		Set<String> subcategories = new HashSet<>();
 
 		if (player.hasPermission(category.toChildPermName(mobType))) {
-			foundAchievements.addAll(findAchievementsByCategoryAndName(mobType));
+			addMatchingSubcategories(subcategories, mobType);
 		}
 
 		if (serverVersion >= 8 && entity.getCustomName() != null
 				&& player.hasPermission(category.toChildPermName(StringUtils.deleteWhitespace(entity.getCustomName())))) {
-			foundAchievements.addAll(findAchievementsByCategoryAndName(entity.getCustomName()));
+			addMatchingSubcategories(subcategories, entity.getCustomName());
 		}
 
 		if (entity instanceof Player) {
 			String specificPlayer = "specificplayer-" + entity.getUniqueId();
 			if (player.hasPermission(category.toChildPermName(specificPlayer))) {
-				foundAchievements.addAll(findAchievementsByCategoryAndName(specificPlayer));
+				addMatchingSubcategories(subcategories, specificPlayer);
 			}
 		}
 
-		updateStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, 1);
+		updateStatisticAndAwardAchievementsIfAvailable(player, subcategories, 1);
 	}
 }

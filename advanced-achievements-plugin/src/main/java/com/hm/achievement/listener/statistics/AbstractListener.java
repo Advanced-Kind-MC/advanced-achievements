@@ -1,7 +1,8 @@
 package com.hm.achievement.listener.statistics;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -22,7 +23,7 @@ import com.hm.achievement.utils.StatisticIncreaseHandler;
 public abstract class AbstractListener extends StatisticIncreaseHandler implements Listener {
 
 	final Category category;
-	Set<String> subcategories;
+	List<String> subcategories;
 
 	AbstractListener(Category category, YamlConfiguration mainConfig, int serverVersion, AchievementMap achievementMap,
 			CacheManager cacheManager) {
@@ -33,7 +34,7 @@ public abstract class AbstractListener extends StatisticIncreaseHandler implemen
 	@Override
 	public void extractConfigurationParameters() {
 		super.extractConfigurationParameters();
-		subcategories = achievementMap.getSubcategoriesForCategory(category);
+		subcategories = new ArrayList<>(achievementMap.getSubcategoriesForCategory(category));
 	}
 
 	public Category getCategory() {
@@ -106,19 +107,19 @@ public abstract class AbstractListener extends StatisticIncreaseHandler implemen
 	}
 
 	/**
-	 * Returns all achievements that match the provided identifier. This methods accounts for groups of sub-categories,
-	 * e.g. 'zombie|pig_zombie|zombie_horse|zombie_villager'.
+	 * Adds all sub-categories that match the identifier to the provided Set. This methods accounts for groups of
+	 * sub-categories, e.g. 'zombie|pig_zombie|zombie_horse|zombie_villager'.
 	 * 
+	 * @param matchingSubcategories the subcategories matched so far
 	 * @param id the identifier to match
-	 * 
-	 * @return all matched achievements
-	 * @author tassu
 	 */
-	Set<String> findAchievementsByCategoryAndName(String id) {
-		return subcategories.stream()
-				.filter(keys -> keys.equals(id) || keys.startsWith(id + '|') || keys.contains('|' + id + '|')
-						|| keys.endsWith('|' + id))
-				.collect(Collectors.toSet());
+	void addMatchingSubcategories(Set<String> matchingSubcategories, String id) {
+		String pipedId = '|' + id + '|';
+		for (String subcategory : subcategories) {
+			if (('|' + subcategory + '|').contains(pipedId)) {
+				matchingSubcategories.add(subcategory);
+			}
+		}
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.hm.achievement.listener.statistics;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -45,8 +46,10 @@ public class McMMOListener extends AbstractListener {
 			return;
 		}
 
-		Set<String> foundAchievements = findAchievementsByCategoryAndName(jobName);
-		increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements, event.getSkillLevel());
+		Set<String> subcategories = new HashSet<>();
+
+		addMatchingSubcategories(subcategories, jobName);
+		increaseStatisticAndAwardAchievementsIfAvailable(player, subcategories, event.getSkillLevel());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -64,8 +67,10 @@ public class McMMOListener extends AbstractListener {
 						continue;
 					}
 
-					Set<String> foundAchievements = findAchievementsByCategoryAndName(skillName);
-					increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements,
+					Set<String> subcategories = new HashSet<>();
+
+					addMatchingSubcategories(subcategories, skillName);
+					increaseStatisticAndAwardAchievementsIfAvailable(player, subcategories,
 							event.getProfile().getSkillLevel(skill));
 				}
 			});
@@ -76,8 +81,10 @@ public class McMMOListener extends AbstractListener {
 					continue;
 				}
 
-				Set<String> foundAchievements = findAchievementsByCategoryAndName(skillName);
-				increaseStatisticAndAwardAchievementsIfAvailable(player, foundAchievements,
+				Set<String> subcategories = new HashSet<>();
+
+				addMatchingSubcategories(subcategories, skillName);
+				increaseStatisticAndAwardAchievementsIfAvailable(player, subcategories,
 						event.getProfile().getSkillLevel(skill));
 			}
 		}
