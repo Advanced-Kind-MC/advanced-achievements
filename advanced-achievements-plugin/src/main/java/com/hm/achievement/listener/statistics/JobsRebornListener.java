@@ -34,7 +34,7 @@ public class JobsRebornListener extends AbstractListener {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onJob(JobsLevelUpEvent event) {
+	public void onJobLevelUp(JobsLevelUpEvent event) {
 		// Get the Player from the JobsPlayer.
 		Player player = event.getPlayer().getPlayer();
 		if (player == null) {
@@ -44,7 +44,7 @@ public class JobsRebornListener extends AbstractListener {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onJob(PlayerJoinEvent event) {
+	public void onJoin(PlayerJoinEvent event) {
 		if (event.getPlayer() == null) {
 			return;
 		}
@@ -56,7 +56,7 @@ public class JobsRebornListener extends AbstractListener {
 		}
 
 		for (JobProgression progression : Jobs.getPlayerManager().getPlayerInfo(event.getPlayer().getUniqueId())
-				.getJobsPlayer().progression) {
+				.getJobsPlayer().getJobProgression()) {
 			updateJob(player, progression.getJob().getName(), progression.getLevel());
 		}
 	}

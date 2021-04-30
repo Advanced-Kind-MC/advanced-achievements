@@ -135,10 +135,12 @@
 		<dependency>
 			<groupId>com.gmail.nossr50.mcMMO</groupId>
 			<artifactId>mcMMO</artifactId>
+			<systemPath>${project.basedir}/../dependencies/mcMMO.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>me.prunt</groupId>
 			<artifactId>advancedafk</artifactId>
+			<systemPath>${project.basedir}/../dependencies/AdvancedAFK.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>net.ess3</groupId>
