@@ -12,11 +12,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.hm.achievement.AdvancedAchievements;
@@ -38,12 +36,10 @@ import com.hm.achievement.listener.PlayerAdvancedAchievementListener;
 import com.hm.achievement.listener.TeleportListener;
 import com.hm.achievement.listener.UpdateChecker;
 import com.hm.achievement.listener.statistics.AbstractListener;
-import com.hm.achievement.placeholder.AchievementCountBungeeTabListPlusVariable;
 import com.hm.achievement.placeholder.AchievementPlaceholderHook;
 import com.hm.achievement.runnable.AchieveDistanceRunnable;
 import com.hm.achievement.runnable.AchievePlayTimeRunnable;
 
-import codecrafter47.bungeetablistplus.api.bukkit.BungeeTabListPlusBukkitAPI;
 import dagger.Lazy;
 
 /**
@@ -68,10 +64,8 @@ public class PluginLoader {
 	private final PlayerAdvancedAchievementListener playerAdvancedAchievementListener;
 	private final TeleportListener teleportListener;
 
-	// Integrations with other plugins. Use lazy injection as these may or may not be used depending on runtime
-	// conditions.
+	// Integration with PlaceholderAPI. Use lazy injection as it may or may not be used depending on runtime conditions.
 	private final Lazy<AchievementPlaceholderHook> achievementPlaceholderHook;
-	private final Lazy<AchievementCountBungeeTabListPlusVariable> achievementCountBungeeTabListPlusVariable;
 
 	// Database related.
 	private final AbstractDatabaseManager databaseManager;
@@ -100,7 +94,6 @@ public class PluginLoader {
 			FireworkListener fireworkListener, JoinListener joinListener, ListGUIListener listGUIListener,
 			PlayerAdvancedAchievementListener playerAdvancedAchievementListener, Cleaner cleaner,
 			TeleportListener teleportListener, Lazy<AchievementPlaceholderHook> achievementPlaceholderHook,
-			Lazy<AchievementCountBungeeTabListPlusVariable> achievementCountBungeeTabListPlusVariable,
 			AbstractDatabaseManager databaseManager, AsyncCachedRequestsSender asyncCachedRequestsSender,
 			PluginCommandExecutor pluginCommandExecutor, CommandTabCompleter commandTabCompleter,
 			Set<Category> disabledCategories, @Named("main") YamlConfiguration mainConfig,
@@ -117,7 +110,6 @@ public class PluginLoader {
 		this.cleaner = cleaner;
 		this.teleportListener = teleportListener;
 		this.achievementPlaceholderHook = achievementPlaceholderHook;
-		this.achievementCountBungeeTabListPlusVariable = achievementCountBungeeTabListPlusVariable;
 		this.databaseManager = databaseManager;
 		this.asyncCachedRequestsSender = asyncCachedRequestsSender;
 		this.pluginCommandExecutor = pluginCommandExecutor;
@@ -135,23 +127,20 @@ public class PluginLoader {
 	/**
 	 * Loads the plugin.
 	 *
-	 * @param firstLoad
 	 * @throws PluginLoadError
 	 */
-	public void loadAdvancedAchievements(boolean firstLoad) throws PluginLoadError {
+	public void loadAdvancedAchievements() throws PluginLoadError {
 		configurationParser.loadAndParseConfiguration();
 		registerListeners();
-		if (firstLoad) {
+		if (!databaseManager.isInitialised()) {
 			databaseManager.initialise();
-			initialiseCommands();
 		}
+		initialiseCommands();
 		launchScheduledTasks();
 		launchUpdateChecker();
 		registerPermissions();
 		reloadCommand.notifyObservers();
-		if (firstLoad) {
-			linkPlaceholders();
-		}
+		linkPlaceholders();
 	}
 
 	/**
@@ -185,25 +174,20 @@ public class PluginLoader {
 	 */
 	private void registerListeners() {
 		logger.info("Registering event listeners...");
+		HandlerList.unregisterAll(advancedAchievements);
 		PluginManager pluginManager = advancedAchievements.getServer().getPluginManager();
 		reloadables.forEach(r -> {
 			if (r instanceof AbstractListener) {
 				AbstractListener listener = (AbstractListener) r;
-				HandlerList.unregisterAll(listener);
 				if (!disabledCategories.contains(listener.getCategory())) {
 					pluginManager.registerEvents(listener, advancedAchievements);
 				}
 			}
 		});
-		HandlerList.unregisterAll(fireworkListener);
 		pluginManager.registerEvents(fireworkListener, advancedAchievements);
-		HandlerList.unregisterAll(joinListener);
 		pluginManager.registerEvents(joinListener, advancedAchievements);
-		HandlerList.unregisterAll(listGUIListener);
 		pluginManager.registerEvents(listGUIListener, advancedAchievements);
-		HandlerList.unregisterAll(playerAdvancedAchievementListener);
 		pluginManager.registerEvents(playerAdvancedAchievementListener, advancedAchievements);
-		HandlerList.unregisterAll(teleportListener);
 		pluginManager.registerEvents(teleportListener, advancedAchievements);
 	}
 
@@ -269,18 +253,10 @@ public class PluginLoader {
 	 * again. If CheckForUpdate switched to false unregisters listener.
 	 */
 	private void launchUpdateChecker() {
-		if (!mainConfig.getBoolean("CheckForUpdate")) {
-			PlayerJoinEvent.getHandlerList().unregister(updateChecker);
-		} else {
-			for (RegisteredListener registeredListener : PlayerJoinEvent.getHandlerList().getRegisteredListeners()) {
-				if (registeredListener.getListener() == updateChecker) {
-					return;
-				}
-			}
+		if (mainConfig.getBoolean("CheckForUpdate")) {
 			advancedAchievements.getServer().getPluginManager().registerEvents(updateChecker, advancedAchievements);
 			updateChecker.launchUpdateCheckerTask();
 		}
-
 	}
 
 	/**
@@ -324,15 +300,11 @@ public class PluginLoader {
 	}
 
 	/**
-	 * Links third-party placeholder plugins (PlaceholderAPI and BungeeTabListPlus currently supported).
+	 * Links the PlaceholderAPI plugin.
 	 */
 	private void linkPlaceholders() {
-		if (Bukkit.getPluginManager().isPluginEnabled("BungeeTabListPlus")) {
-			BungeeTabListPlusBukkitAPI.registerVariable(advancedAchievements,
-					achievementCountBungeeTabListPlusVariable.get());
-		}
-
-		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
+				&& !achievementPlaceholderHook.get().isRegistered()) {
 			achievementPlaceholderHook.get().register();
 		}
 	}

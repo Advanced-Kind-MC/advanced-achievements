@@ -1,5 +1,6 @@
 package com.hm.achievement.db;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -9,7 +10,6 @@ import static org.mockito.Mockito.when;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -28,8 +28,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import com.hm.achievement.AdvancedAchievements;
+import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.category.NormalAchievements;
 import com.hm.achievement.db.data.AwardedDBAchievement;
 import com.hm.achievement.db.data.ConnectionInformation;
@@ -43,6 +43,7 @@ import com.hm.achievement.db.data.ConnectionInformation;
 class H2DatabaseManagerTest {
 
 	private static final String TEST_ACHIEVEMENT = "testachievement";
+	private static final Logger LOGGER = Logger.getLogger("DBTestLogger");
 
 	private static H2DatabaseManager db;
 
@@ -51,18 +52,11 @@ class H2DatabaseManagerTest {
 	@BeforeAll
 	static void setUpClass(@TempDir Path tempDir) throws Exception {
 		AdvancedAchievements plugin = mock(AdvancedAchievements.class);
-		//when(plugin.getDataFolder()).thenReturn(tempDir.relativize(Paths.get("").toAbsolutePath()).toFile());
+		when(plugin.getDataFolder()).thenReturn(tempDir.relativize(Paths.get("").toAbsolutePath()).toFile());
 		Logger logger = Logger.getLogger("DBTestLogger");
 		YamlConfiguration config = YamlConfiguration
 				.loadConfiguration(new InputStreamReader(H2DatabaseManagerTest.class.getResourceAsStream("/config-h2.yml")));
-		db = new H2DatabaseManager(config, logger, new DatabaseUpdater(logger, null), plugin) {
-
-			@Override
-			public void extractConfigurationParameters() {
-				super.extractConfigurationParameters();
-				pool = MoreExecutors.newDirectExecutorService();
-			}
-		};
+		db = new H2DatabaseManager(config, LOGGER, new DatabaseUpdater(LOGGER, null), plugin, newDirectExecutorService());
 		db.initialise();
 		db.extractConfigurationParameters();
 	}
@@ -79,7 +73,7 @@ class H2DatabaseManagerTest {
 
 	@Test
 	void testGetPlayerAchievementsList() {
-		registerAchievement();
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
 
 		List<AwardedDBAchievement> achievements = db.getPlayerAchievementsList(testUUID);
 		assertEquals(1, achievements.size());
@@ -91,7 +85,7 @@ class H2DatabaseManagerTest {
 
 	@Test
 	void testGetAchievementsRecipientList() {
-		registerAchievement();
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
 
 		List<AwardedDBAchievement> achievements = db.getAchievementsRecipientList(TEST_ACHIEVEMENT);
 		assertEquals(1, achievements.size());
@@ -103,7 +97,7 @@ class H2DatabaseManagerTest {
 
 	@Test
 	void testAchievementCount() {
-		registerAchievement();
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
 
 		Map<UUID, Integer> expected = Collections.singletonMap(testUUID, 1);
 
@@ -116,7 +110,7 @@ class H2DatabaseManagerTest {
 		String date = db.getPlayerAchievementDate(testUUID, TEST_ACHIEVEMENT);
 		assertNull(date);
 
-		registerAchievement();
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
 
 		date = db.getPlayerAchievementDate(testUUID, TEST_ACHIEVEMENT);
 		assertNotNull(date);
@@ -124,7 +118,7 @@ class H2DatabaseManagerTest {
 
 	@Test
 	void testDeleteAchievement() {
-		registerAchievement();
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
 
 		db.deletePlayerAchievement(testUUID, TEST_ACHIEVEMENT);
 
@@ -133,8 +127,8 @@ class H2DatabaseManagerTest {
 
 	@Test
 	void testDeleteAllAchievements() {
-		registerAchievement(testUUID, TEST_ACHIEVEMENT);
-		registerAchievement(testUUID, TEST_ACHIEVEMENT + "2");
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT + "2", System.currentTimeMillis());
 
 		db.deleteAllPlayerAchievements(testUUID);
 
@@ -155,18 +149,14 @@ class H2DatabaseManagerTest {
 	void testGetTopAchievements() {
 		long firstSave = 99L;
 
-		System.out.println("Save first achievement:  " + System.currentTimeMillis());
-		registerAchievement(testUUID, TEST_ACHIEVEMENT, 100L);
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, 100L);
 
 		long secondSave = 199L;
 
 		UUID secondUUID = UUID.randomUUID();
-		String secondAch = "TestAchievement2";
 
-		System.out.println("Save second achievement: " + System.currentTimeMillis());
-		registerAchievement(secondUUID, TEST_ACHIEVEMENT, 200L);
-		System.out.println("Save third achievement:  " + System.currentTimeMillis());
-		registerAchievement(secondUUID, secondAch, 200L);
+		db.registerAchievement(secondUUID, TEST_ACHIEVEMENT, 200L);
+		db.registerAchievement(secondUUID, TEST_ACHIEVEMENT + "2", 200L);
 
 		Map<String, Integer> expected = new LinkedHashMap<>();
 		expected.put(secondUUID.toString(), 2);
@@ -186,7 +176,7 @@ class H2DatabaseManagerTest {
 
 	@Test
 	void testGetAchievementNameList() {
-		registerAchievement();
+		db.registerAchievement(testUUID, TEST_ACHIEVEMENT, System.currentTimeMillis());
 
 		Set<String> expected = Collections.singleton(TEST_ACHIEVEMENT);
 		Set<String> achNames = db.getPlayerAchievementNames(testUUID);
@@ -217,27 +207,44 @@ class H2DatabaseManagerTest {
 		assertEquals(0, connectionInformation.getCount());
 	}
 
-	private void registerAchievement() {
-		registerAchievement(testUUID, TEST_ACHIEVEMENT);
+	@Test
+	void testGetNormalAchievementAmount() {
+		assertEquals(0, db.getNormalAchievementAmount(testUUID, NormalAchievements.BEDS));
+
+		((SQLWriteOperation) () -> {
+			try (PreparedStatement ps = db.getConnection()
+					.prepareStatement("REPLACE INTO beds VALUES ('" + testUUID + "',5)")) {
+				ps.execute();
+			}
+		}).executeOperation(db.writeExecutor, LOGGER, "Writing beds statistics");
+
+		assertEquals(5, db.getNormalAchievementAmount(testUUID, NormalAchievements.BEDS));
 	}
 
-	private void registerAchievement(UUID uuid, String ach) {
-		registerAchievement(uuid, ach, System.currentTimeMillis());
+	@Test
+	void testGetMultipleAchievementAmount() {
+		assertEquals(0, db.getMultipleAchievementAmount(testUUID, MultipleAchievements.CRAFTS, "diamond_axe"));
+
+		((SQLWriteOperation) () -> {
+			try (PreparedStatement ps = db.getConnection()
+					.prepareStatement("REPLACE INTO crafts VALUES ('" + testUUID + "','diamond_axe',7)")) {
+				ps.execute();
+			}
+		}).executeOperation(db.writeExecutor, LOGGER, "Writing crafts statistics");
+
+		assertEquals(7, db.getMultipleAchievementAmount(testUUID, MultipleAchievements.CRAFTS, "diamond_axe"));
 	}
 
-	private void registerAchievement(UUID uuid, String ach, long date) {
-		System.out.println("Saving test achievement: " + uuid + " | " + ach);
-		db.registerAchievement(uuid, ach, date);
+	@Test
+	void testGetDefaultJobsRebornAchievementAmount() {
+		assertEquals(1, db.getMultipleAchievementAmount(testUUID, MultipleAchievements.JOBSREBORN, "hunter"));
 	}
 
 	private void clearDatabase() {
-		String sql = "DELETE FROM achievements";
-
 		((SQLWriteOperation) () -> {
-			Connection conn = db.getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			try (PreparedStatement ps = db.getConnection().prepareStatement("DELETE FROM achievements")) {
 				ps.execute();
 			}
-		}).executeOperation(db.pool, null, "Clearing achievements table");
+		}).executeOperation(db.writeExecutor, LOGGER, "Clearing achievements table");
 	}
 }

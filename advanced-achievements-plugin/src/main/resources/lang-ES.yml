@@ -6,7 +6,7 @@
 #   /_/   \_\__,_| \_/ \__,_|_| |_|\___\___|\__,_| /_/   \_\___|_| |_|_|\___| \_/ \___|_| |_| |_|\___|_| |_|\__|___/   #
 #                                                                                                                      #
 #                                       Spanish translation by Arciniegasdiaz                                          #
-#                                            Versión valida para la 7.0.4                                              #
+#                                            Versión valida para la 7.1.0                                              #
 #======================================================================================================================#
 
 # Varios mensajes de usuario.
@@ -114,7 +114,6 @@ version-command-description: "Descripción:"
 version-command-description-details: "Advanced Achievements permite logros únicos y desafiantes. ¡Intenta recoger tantos como puedas, gana recompensas, sube en el ranking y recibe libros de RP!"
 version-command-vault: "Integración con Vault:"
 version-command-petmaster: "Integración con Pet Master:"
-version-command-btlp: "Integración con BungeeTabListPlus:"
 version-command-essentials: "Integración con Essentials:"
 version-command-placeholderapi: "Integración con PlaceholderAPI:"
 version-command-database: "Tipo de base de datos:"

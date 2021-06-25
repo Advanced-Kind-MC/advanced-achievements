@@ -1,10 +1,10 @@
 package com.hm.achievement.db;
 
 import java.io.UnsupportedEncodingException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import javax.inject.Named;
@@ -24,8 +24,8 @@ import com.hm.achievement.db.data.ConnectionInformation;
 public class PostgreSQLDatabaseManager extends AbstractRemoteDatabaseManager {
 
 	public PostgreSQLDatabaseManager(@Named("main") YamlConfiguration mainConfig, Logger logger,
-			DatabaseUpdater databaseUpdater) {
-		super(mainConfig, logger, databaseUpdater, "org.postgresql.Driver", "postgresql");
+			DatabaseUpdater databaseUpdater, ExecutorService writeExecutor) {
+		super(mainConfig, logger, databaseUpdater, "org.postgresql.Driver", "postgresql", writeExecutor);
 	}
 
 	@Override
@@ -46,15 +46,14 @@ public class PostgreSQLDatabaseManager extends AbstractRemoteDatabaseManager {
 			// available for PostgreSQL 9.5+.
 			String sql = "INSERT INTO " + prefix + "achievements VALUES (?,?,?) ON CONFLICT (playername,achievement) "
 					+ "DO UPDATE SET (date)=(?)";
-			Connection conn = getSQLConnection();
-			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
 				ps.setString(1, uuid.toString());
 				ps.setString(2, achName);
 				ps.setTimestamp(3, new Timestamp(time));
 				ps.setTimestamp(4, new Timestamp(time));
 				ps.execute();
 			}
-		}).executeOperation(pool, logger, "registering an achievement");
+		}).executeOperation(writeExecutor, logger, "registering an achievement");
 	}
 
 	@Override
@@ -64,8 +63,7 @@ public class PostgreSQLDatabaseManager extends AbstractRemoteDatabaseManager {
 			// available for PostgreSQL 9.5+.
 			String sql = "INSERT INTO " + prefix + NormalAchievements.CONNECTIONS.toDBName() + " VALUES (?,?,?) ON"
 					+ " CONFLICT (playername) DO UPDATE SET (" + NormalAchievements.CONNECTIONS.toDBName() + ",date)=(?,?)";
-			Connection conn = getSQLConnection();
-			try (PreparedStatement writePrep = conn.prepareStatement(sql)) {
+			try (PreparedStatement writePrep = getConnection().prepareStatement(sql)) {
 				String date = ConnectionInformation.today();
 				writePrep.setString(1, uuid.toString());
 				writePrep.setLong(2, connections);
@@ -74,6 +72,6 @@ public class PostgreSQLDatabaseManager extends AbstractRemoteDatabaseManager {
 				writePrep.setString(5, date);
 				writePrep.execute();
 			}
-		}).executeOperation(pool, logger, "updating connection date and count");
+		}).executeOperation(writeExecutor, logger, "updating connection date and count");
 	}
 }
