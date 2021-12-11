@@ -6,7 +6,7 @@
 #   /_/   \_\__,_| \_/ \__,_|_| |_|\___\___|\__,_| /_/   \_\___|_| |_|_|\___| \_/ \___|_| |_| |_|\___|_| |_|\__|___/   #
 #                                                                                                                      #
 #                                           Dansk oversættelse af tobi224                                              #
-#                                              Gyldig version fra 7.1.0                                                #
+#                                              Gyldig version fra 7.2.5                                                #
 #======================================================================================================================#
 
 no-permissions: "Du har ikke tilladelse til at gøre dette."
@@ -51,8 +51,8 @@ error-value: "Værdien VALUE skal være en integer!"
 statistic-increased: "Statistisk ACH øget med AMOUNT for PLAYER!"
 
 # Relateret til achievement reception.
-achievement-received: "PLAYER modtagede præsentationen:"
-achievement-new: "Ny præsentation:"
+achievement-received: "PLAYER modtagede præsentationen: ACH"
+achievement-new: "Ny præsentation: ACH"
 
 # Relateret til /aach check.
 check-achievement-true: "PLAYER har modtaget præsentationen ACH!"
@@ -211,7 +211,6 @@ reset-all-successful: "Alle statistikker var ryddet for PLAYER."
 
 # Relateret til /aach generate.
 advancements-generated: "præsentationer var vellykket genereret."
-minecraft-not-supported: "Præsentationer ikke understøttet i din Minecraft version. Venligst opdater til 1.12+."
 
 # Relateret til /aach inspect
 achievement-not-recognized: "Præsentation kaldet 'NAME' var ikke genkedt. Mente du CLOSEST_MATCH?"

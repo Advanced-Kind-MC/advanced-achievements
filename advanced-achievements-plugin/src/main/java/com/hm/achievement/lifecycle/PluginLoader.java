@@ -29,12 +29,10 @@ import com.hm.achievement.config.ConfigurationParser;
 import com.hm.achievement.db.AbstractDatabaseManager;
 import com.hm.achievement.db.AsyncCachedRequestsSender;
 import com.hm.achievement.exception.PluginLoadError;
-import com.hm.achievement.listener.FireworkListener;
 import com.hm.achievement.listener.JoinListener;
 import com.hm.achievement.listener.ListGUIListener;
 import com.hm.achievement.listener.PlayerAdvancedAchievementListener;
 import com.hm.achievement.listener.TeleportListener;
-import com.hm.achievement.listener.UpdateChecker;
 import com.hm.achievement.listener.statistics.AbstractListener;
 import com.hm.achievement.placeholder.AchievementPlaceholderHook;
 import com.hm.achievement.runnable.AchieveDistanceRunnable;
@@ -52,13 +50,11 @@ public class PluginLoader {
 
 	private final AdvancedAchievements advancedAchievements;
 	private final Logger logger;
-	private final UpdateChecker updateChecker;
 	private final ReloadCommand reloadCommand;
 	private final Set<Reloadable> reloadables;
 	private final AchievementMap achievementMap;
 
 	// Listeners, to monitor various events.
-	private final FireworkListener fireworkListener;
 	private final JoinListener joinListener;
 	private final ListGUIListener listGUIListener;
 	private final PlayerAdvancedAchievementListener playerAdvancedAchievementListener;
@@ -91,24 +87,22 @@ public class PluginLoader {
 
 	@Inject
 	public PluginLoader(AdvancedAchievements advancedAchievements, Logger logger, Set<Reloadable> reloadables,
-			FireworkListener fireworkListener, JoinListener joinListener, ListGUIListener listGUIListener,
+			JoinListener joinListener, ListGUIListener listGUIListener, TeleportListener teleportListener,
 			PlayerAdvancedAchievementListener playerAdvancedAchievementListener, Cleaner cleaner,
-			TeleportListener teleportListener, Lazy<AchievementPlaceholderHook> achievementPlaceholderHook,
-			AbstractDatabaseManager databaseManager, AsyncCachedRequestsSender asyncCachedRequestsSender,
-			PluginCommandExecutor pluginCommandExecutor, CommandTabCompleter commandTabCompleter,
-			Set<Category> disabledCategories, @Named("main") YamlConfiguration mainConfig,
-			ConfigurationParser configurationParser, AchieveDistanceRunnable distanceRunnable,
-			AchievePlayTimeRunnable playTimeRunnable, UpdateChecker updateChecker, ReloadCommand reloadCommand,
+			Lazy<AchievementPlaceholderHook> achievementPlaceholderHook, AbstractDatabaseManager databaseManager,
+			AsyncCachedRequestsSender asyncCachedRequestsSender, PluginCommandExecutor pluginCommandExecutor,
+			CommandTabCompleter commandTabCompleter, Set<Category> disabledCategories,
+			@Named("main") YamlConfiguration mainConfig, ConfigurationParser configurationParser,
+			AchieveDistanceRunnable distanceRunnable, AchievePlayTimeRunnable playTimeRunnable, ReloadCommand reloadCommand,
 			AchievementMap achievementMap) {
 		this.advancedAchievements = advancedAchievements;
 		this.logger = logger;
 		this.reloadables = reloadables;
-		this.fireworkListener = fireworkListener;
 		this.joinListener = joinListener;
 		this.listGUIListener = listGUIListener;
+		this.teleportListener = teleportListener;
 		this.playerAdvancedAchievementListener = playerAdvancedAchievementListener;
 		this.cleaner = cleaner;
-		this.teleportListener = teleportListener;
 		this.achievementPlaceholderHook = achievementPlaceholderHook;
 		this.databaseManager = databaseManager;
 		this.asyncCachedRequestsSender = asyncCachedRequestsSender;
@@ -119,7 +113,6 @@ public class PluginLoader {
 		this.configurationParser = configurationParser;
 		this.distanceRunnable = distanceRunnable;
 		this.playTimeRunnable = playTimeRunnable;
-		this.updateChecker = updateChecker;
 		this.reloadCommand = reloadCommand;
 		this.achievementMap = achievementMap;
 	}
@@ -137,7 +130,6 @@ public class PluginLoader {
 		}
 		initialiseCommands();
 		launchScheduledTasks();
-		launchUpdateChecker();
 		registerPermissions();
 		reloadCommand.notifyObservers();
 		linkPlaceholders();
@@ -184,7 +176,6 @@ public class PluginLoader {
 				}
 			}
 		});
-		pluginManager.registerEvents(fireworkListener, advancedAchievements);
 		pluginManager.registerEvents(joinListener, advancedAchievements);
 		pluginManager.registerEvents(listGUIListener, advancedAchievements);
 		pluginManager.registerEvents(playerAdvancedAchievementListener, advancedAchievements);
@@ -249,17 +240,6 @@ public class PluginLoader {
 	}
 
 	/**
-	 * Launches an update check task. If updateChecker already registered (i.e. reload), does not check for update
-	 * again. If CheckForUpdate switched to false unregisters listener.
-	 */
-	private void launchUpdateChecker() {
-		if (mainConfig.getBoolean("CheckForUpdate")) {
-			advancedAchievements.getServer().getPluginManager().registerEvents(updateChecker, advancedAchievements);
-			updateChecker.launchUpdateCheckerTask();
-		}
-	}
-
-	/**
 	 * Registers permissions that depend on the user's configuration file (for MultipleAchievements; for instance for
 	 * stone breaks, achievement.count.breaks.stone will be registered).
 	 * 
@@ -273,9 +253,8 @@ public class PluginLoader {
 		for (MultipleAchievements category : MultipleAchievements.values()) {
 			Permission categoryParent = new Permission(category.toPermName(), PermissionDefault.TRUE);
 			for (String section : achievementMap.getSubcategoriesForCategory(category)) {
-				// Permission ignores metadata (eg. sand:1) for Breaks, Places and Crafts categories and don't take
-				// spaces into account.
-				section = StringUtils.deleteWhitespace(StringUtils.substringBefore(section, ":"));
+				// Permissions don't take spaces into account.
+				section = StringUtils.deleteWhitespace(section);
 
 				for (String groupElement : StringUtils.split(section, '|')) {
 					String permissionNode = category.toChildPermName(groupElement);

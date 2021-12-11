@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -49,18 +50,16 @@ public class RewardParser {
 	private final YamlConfiguration langConfig;
 	private final Server server;
 	private final MaterialHelper materialHelper;
-	private final int serverVersion;
 
 	// Used for Vault plugin integration.
 	private Economy economy;
 
 	@Inject
 	public RewardParser(@Named("main") YamlConfiguration mainConfig, @Named("lang") YamlConfiguration langConfig,
-			AdvancedAchievements advancedAchievements, MaterialHelper materialHelper, int serverVersion) {
+			AdvancedAchievements advancedAchievements, MaterialHelper materialHelper) {
 		this.mainConfig = mainConfig;
 		this.langConfig = langConfig;
 		this.materialHelper = materialHelper;
-		this.serverVersion = serverVersion;
 		this.server = advancedAchievements.getServer();
 		// Try to retrieve an Economy instance from Vault.
 		if (server.getPluginManager().isPluginEnabled("Vault")) {
@@ -76,10 +75,7 @@ public class RewardParser {
 	}
 
 	public List<Reward> parseRewards(String path) {
-		ConfigurationSection configSection = mainConfig.getConfigurationSection(path + ".Reward");
-		if (configSection == null) {
-			configSection = mainConfig.getConfigurationSection(path + ".Rewards");
-		}
+		ConfigurationSection configSection = mainConfig.getConfigurationSection(path);
 		List<Reward> rewards = new ArrayList<>();
 		if (configSection != null) {
 			if (economy != null && configSection.contains("Money")) {
@@ -157,10 +153,9 @@ public class RewardParser {
 				itemMeta.setDisplayName(StringHelper.replacePlayerPlaceholders(itemMeta.getDisplayName(), player));
 				playerItem.setItemMeta(itemMeta);
 			}
-			if (player.getInventory().firstEmpty() != -1) {
-				player.getInventory().addItem(playerItem);
-			} else {
-				player.getWorld().dropItem(player.getLocation(), playerItem);
+			Map<Integer, ItemStack> leftoverItem = player.getInventory().addItem(playerItem);
+			for (ItemStack itemToDrop : leftoverItem.values()) {
+				player.getWorld().dropItem(player.getLocation(), itemToDrop);
 			}
 		});
 		return new Reward(listTexts, chatTexts, rewarder);
@@ -184,14 +179,9 @@ public class RewardParser {
 		String chatText = ChatColor.translateAlternateColorCodes('&',
 				StringUtils.replaceOnce(langConfig.getString("increase-max-health-reward-received"), "AMOUNT",
 						Integer.toString(amount)));
-		@SuppressWarnings("deprecation")
 		Consumer<Player> rewarder = player -> {
-			if (serverVersion >= 9) {
-				AttributeInstance playerAttribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-				playerAttribute.setBaseValue(playerAttribute.getBaseValue() + amount);
-			} else {
-				player.setMaxHealth(player.getMaxHealth() + amount);
-			}
+			AttributeInstance playerAttribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+			playerAttribute.setBaseValue(playerAttribute.getBaseValue() + amount);
 		};
 		return new Reward(Collections.singletonList(listText), Collections.singletonList(chatText), rewarder);
 	}

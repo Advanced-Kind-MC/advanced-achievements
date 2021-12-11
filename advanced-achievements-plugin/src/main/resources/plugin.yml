@@ -1,6 +1,6 @@
 name: AdvancedAchievements
 main: com.hm.achievement.AdvancedAchievements
-version: 7.1.0
+version: 8.0.2
 author: DarkPyves
 softdepend: [Vault,PetMaster,BungeeTabListPlus,Essentials,PlaceholderAPI,Jobs,mcMMO,AdvancedAFK,iConomy]
 description: Advanced Achievements enables unique and challenging achievements. Try to collect as many as you can, earn rewards, climb the rankings and receive RP books!
@@ -57,9 +57,6 @@ permissions:
   achievement.generate:
     description: Allows to generate advancements from the achievements defined in the configuration.
     default: op
-  achievement.update:
-    description: Allows to be notified when a plugin update is available and CheckForUpdate is set to true in config.
-    default: op
   achievement.*:
     description: Star notation of permissions, includes all the above ones and disables book command cooldowns.
     default: op
@@ -79,7 +76,6 @@ permissions:
       achievement.delete: true
       achievement.reset: true
       achievement.generate: true
-      achievement.update: true
       achievement.count.*: true
   achievement.config.title.screen:
     description: If TitleScreen is false in config.yml, allows overriding to true on a per-player basis.
@@ -135,6 +131,7 @@ permissions:
       achievement.count.smelting: true
       achievement.count.raidswon: true
       achievement.count.riptides: true
+      achievement.count.booksedited: true
       achievement.count.places.*: true
       achievement.count.breaks.*: true
       achievement.count.kills.*: true
@@ -145,6 +142,7 @@ permissions:
       achievement.count.jobsreborn.*: true
       achievement.count.mcmmo.*: true
       achievement.count.custom.*: true
+      achievement.count.effectsheld.*: true
   achievement.count.connections:
     description: Allows connection statistics in database to increase.
     default: true
@@ -277,6 +275,9 @@ permissions:
   achievement.count.riptides:
     description: Allows riptides statistics in database to increase.
     default: true
+  achievement.count.booksedited:
+    description: Allows books edited statistics in database to increase.
+    default: true
   achievement.count.places.*:
     description: Allows places statistics in database to increase.
     default: true
@@ -307,11 +308,14 @@ permissions:
   achievement.count.custom.*:
     description: Allows custom statistics in database to increase.
     default: true
+  achievement.count.effectsheld.*:
+    description: Allows effects held statistics in database to increase.
+    default: true
 #======================================================================================================================#
 #                                /!\  Dynamic permissions added at plugin startup  /!\                                 #
 #======================================================================================================================#
 # For individual achievements, simply use the Name property, e.g achievement.place_100_stone
-# For categories with sub-categories (Breaks, Places, Crafts, Kills, Breeding, PlayerCommands, Custom and TargetsShot):
+# For categories with sub-categories (Breaks, Places, Crafts, Kills, Breeding, PlayerCommands, Custom, TargetsShot and EffectsHeld):
 # - use the sub-category key: for example for stone breaks, achievement.count.breaks.stone
 # - for PlayerCommands, use lower case without spaces nor the initial slash: achievement.count.playercommands.aachbook
 # - for Kills with a custom mob name you should remove any whitespaces: achievement.count.kills.§2SkeletalKnight

@@ -56,8 +56,7 @@ class RewardParserTest {
 		mainConfig = new YamlConfiguration();
 		langConfig = new YamlConfiguration();
 		langConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/lang.yml").toURI()).toFile());
-		underTest = new RewardParser(mainConfig, langConfig, advancedAchievements,
-				new MaterialHelper(Logger.getGlobal(), 16), 16);
+		underTest = new RewardParser(mainConfig, langConfig, advancedAchievements, new MaterialHelper(Logger.getGlobal()));
 	}
 
 	@Test
@@ -65,7 +64,7 @@ class RewardParserTest {
 		mainConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/money-1.yml").toURI()).toFile());
 		when(economy.currencyNameSingular()).thenReturn("coin");
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -80,7 +79,7 @@ class RewardParserTest {
 		mainConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/money-2.yml").toURI()).toFile());
 		when(economy.currencyNamePlural()).thenReturn("coins");
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -94,7 +93,7 @@ class RewardParserTest {
 	void shouldParseItemReward() throws Exception {
 		mainConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/item.yml").toURI()).toFile());
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -114,7 +113,7 @@ class RewardParserTest {
 		when(player.getWorld()).thenReturn(world);
 		when(world.getName()).thenReturn("Nether");
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -133,7 +132,7 @@ class RewardParserTest {
 		when(player.getWorld()).thenReturn(world);
 		when(world.getName()).thenReturn("Nether");
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -149,7 +148,7 @@ class RewardParserTest {
 	void shouldParseExperienceReward() throws Exception {
 		mainConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/experience.yml").toURI()).toFile());
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -166,7 +165,7 @@ class RewardParserTest {
 		when(player.getAttribute(any())).thenReturn(healthAttribute);
 		when(healthAttribute.getBaseValue()).thenReturn(1.0);
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);
@@ -177,30 +176,12 @@ class RewardParserTest {
 		verify(healthAttribute).setBaseValue(3.0);
 	}
 
-	@SuppressWarnings("deprecation")
-	@Test
-	void shouldParseMaxHealthRewardOnOlderMinecraftVersions() throws Exception {
-		underTest = new RewardParser(mainConfig, langConfig, advancedAchievements, new MaterialHelper(Logger.getGlobal(), 8),
-				8);
-		mainConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/max-health.yml").toURI()).toFile());
-		when(player.getMaxHealth()).thenReturn(2.0);
-
-		List<Reward> rewards = underTest.parseRewards("");
-
-		assertEquals(1, rewards.size());
-		Reward reward = rewards.get(0);
-		assertEquals(Arrays.asList("increase max health by 2"), reward.getListTexts());
-		assertEquals(Arrays.asList("Your max health has increased by 2!"), reward.getChatTexts());
-		reward.getRewarder().accept(player);
-		verify(player).setMaxHealth(4.0);
-	}
-
 	@Test
 	void shouldParseMaxOxygenReward() throws Exception {
 		mainConfig.load(Paths.get(getClass().getClassLoader().getResource("reward-parser/max-oxygen.yml").toURI()).toFile());
 		when(player.getMaximumAir()).thenReturn(5);
 
-		List<Reward> rewards = underTest.parseRewards("");
+		List<Reward> rewards = underTest.parseRewards("Reward");
 
 		assertEquals(1, rewards.size());
 		Reward reward = rewards.get(0);

@@ -46,8 +46,8 @@ error-value: "Hodnota VALUE musi byt ciselna!"
 statistic-increased: "Statistika ACH se zvisila o AMOUNT pro hrace PLAYER!"
 
 # Related to achievement reception.
-achievement-received: "Hrac PLAYER ziskal uspech:"
-achievement-new: "Novy uspech:"
+achievement-received: "Hrac PLAYER ziskal uspech: ACH"
+achievement-new: "Novy uspech: ACH"
 
 # Related to /aach check.
 check-achievement-true: "Hrac PLAYER ziskal uspech ACH!"
@@ -190,7 +190,6 @@ reset-successful: " statistiky byli resetovani hraci PLAYER."
 
 # Related to /aach generate.
 advancements-generated: "Uspechy byli uspesne vygenerovany."
-minecraft-not-supported: "Uspechy nefunguji na vasi versi serveru. Pouzijte prosim verzi 1.12+."
 
 #============================================================#
 # +--------------------------------------------------------+ #

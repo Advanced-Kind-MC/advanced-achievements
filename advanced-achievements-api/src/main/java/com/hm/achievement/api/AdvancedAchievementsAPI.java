@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 
 import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.category.NormalAchievements;
+import com.hm.achievement.domain.Achievement;
 import com.hm.achievement.domain.AwardedAchievement;
 
 /**
@@ -43,7 +44,7 @@ public interface AdvancedAchievementsAPI {
 	 * @return list of {@code com.hm.achievement.domain.Achievement} objects received by the player
 	 * @since 7.0.0
 	 */
-	List<com.hm.achievement.domain.Achievement> getAllAchievements();
+	List<Achievement> getAllAchievements();
 
 	/**
 	 * Retrieves all achievements received by the player.
@@ -53,17 +54,6 @@ public interface AdvancedAchievementsAPI {
 	 * @since 7.0.0
 	 */
 	List<AwardedAchievement> getPlayerAchievements(UUID player);
-
-	/**
-	 * Retrieves all achievements received by the player.
-	 *
-	 * @param player should not be null
-	 * @return list of {@code Achievement} objects received by the player
-	 * @since 5.8.0
-	 * @deprecated use {@link AdvancedAchievementsAPI#getPlayerAchievements(UUID)} instead
-	 */
-	@Deprecated
-	List<Achievement> getPlayerAchievementsList(UUID player);
 
 	/**
 	 * Retrieves the total number of achievements received by the player.
@@ -167,20 +157,6 @@ public interface AdvancedAchievementsAPI {
 		public Rank(int playerRank, int totalPlayers) {
 			this.playerRank = playerRank;
 			this.totalPlayers = totalPlayers;
-		}
-	}
-
-	@Deprecated
-	final class Achievement {
-
-		public final String name;
-		public final String message;
-		public final String formattedDate;
-
-		public Achievement(String name, String message, String formattedDate) {
-			this.name = name;
-			this.message = message;
-			this.formattedDate = formattedDate;
 		}
 	}
 

@@ -51,8 +51,8 @@ error-value: "给定值： VALUE 必须是一个整数!"
 statistic-increased: "玩家 PLAYER 的 ACH 成就统计增加了 AMOUNT!"
 
 # 与获得成就相关
-achievement-received: "该玩家已获得成就"
-achievement-new: "新成就:"
+achievement-received: "玩家 PLAYER 获得成就 ACH"
+achievement-new: "新成就: ACH"
 
 # 与 /aach check 相关
 check-achievement-true: "PLAYER 已经拥有这项成就： ACH!"
@@ -211,7 +211,6 @@ reset-all-successful: " 玩家 PLAYER 的所有统计数据已经被清除。"
 
 # 与 /aach generate 相关
 advancements-generated: "成功生成成就."
-minecraft-not-supported: "你的Minecraft版本不支持成就，请升级到 1.12+."
 
 # 与 /aach inspect 相关
 achievement-not-recognized: 名称为 'NAME' 的成就无法识别，您的意思是 CLOSEST_MATCH 吗?"

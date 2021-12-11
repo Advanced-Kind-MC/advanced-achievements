@@ -21,16 +21,21 @@ import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.advancement.Advancement;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 
-import com.darkblade12.particleeffect.ParticleEffect;
 import com.hm.achievement.AdvancedAchievements;
 import com.hm.achievement.advancement.AchievementAdvancement;
 import com.hm.achievement.advancement.AdvancementManager;
@@ -45,8 +50,10 @@ import com.hm.achievement.lifecycle.Reloadable;
 import com.hm.achievement.utils.ColorHelper;
 import com.hm.achievement.utils.FancyMessageSender;
 import com.hm.achievement.utils.PlayerAdvancedAchievementEvent;
-import com.hm.achievement.utils.SoundPlayer;
 import com.hm.achievement.utils.StringHelper;
+
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 /**
  * Listener class to deal with achievement receptions: rewards, display and database operations.
@@ -57,7 +64,7 @@ import com.hm.achievement.utils.StringHelper;
 public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 
 	private static final Random RANDOM = new Random();
-
+	private static final String ADVANCED_ACHIEVEMENTS_FIREWORK = "advanced_achievements_firework";
 	private static final Map<ChatColor, ChatColor> FIREWORK_COLOR_MIX = new HashMap<>();
 	static {
 		FIREWORK_COLOR_MIX.put(ChatColor.AQUA, ChatColor.DARK_AQUA);
@@ -80,7 +87,6 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 
 	private final YamlConfiguration mainConfig;
 	private final YamlConfiguration langConfig;
-	private final int serverVersion;
 	private final Logger logger;
 	private final StringBuilder pluginHeader;
 	private final CacheManager cacheManager;
@@ -89,33 +95,34 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 	private final AchievementMap achievementMap;
 	private final AbstractDatabaseManager databaseManager;
 	private final ToggleCommand toggleCommand;
-	private final FireworkListener fireworkListener;
-	private final SoundPlayer soundPlayer;
+	private final FancyMessageSender fancyMessageSender;
 
 	private String configFireworkStyle;
 	private boolean configFirework;
 	private Color configColor;
 	private Color mixColor;
+	private BarColor barColor;
 	private boolean configSimplifiedReception;
 	private boolean configTitleScreen;
 	private boolean configNotifyOtherPlayers;
 	private boolean configActionBarNotify;
 	private boolean configHoverableReceiverChatText;
 	private boolean configReceiverChatMessages;
+	private boolean configBossBarProgress;
 
 	private String langAchievementReceived;
 	private String langAchievementNew;
 	private String langAllAchievementsReceived;
+	private String langBossBarProgress;
 
 	@Inject
 	public PlayerAdvancedAchievementListener(@Named("main") YamlConfiguration mainConfig,
-			@Named("lang") YamlConfiguration langConfig, int serverVersion, Logger logger, StringBuilder pluginHeader,
+			@Named("lang") YamlConfiguration langConfig, Logger logger, StringBuilder pluginHeader,
 			CacheManager cacheManager, AdvancedAchievements advancedAchievements, RewardParser rewardParser,
 			AchievementMap achievementMap, AbstractDatabaseManager databaseManager, ToggleCommand toggleCommand,
-			FireworkListener fireworkListener, SoundPlayer soundPlayer) {
+			FancyMessageSender fancyMessageSender) {
 		this.mainConfig = mainConfig;
 		this.langConfig = langConfig;
-		this.serverVersion = serverVersion;
 		this.logger = logger;
 		this.pluginHeader = pluginHeader;
 		this.cacheManager = cacheManager;
@@ -124,8 +131,7 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 		this.achievementMap = achievementMap;
 		this.databaseManager = databaseManager;
 		this.toggleCommand = toggleCommand;
-		this.fireworkListener = fireworkListener;
-		this.soundPlayer = soundPlayer;
+		this.fancyMessageSender = fancyMessageSender;
 	}
 
 	@Override
@@ -139,29 +145,26 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 		configFirework = mainConfig.getBoolean("Firework");
 		configSimplifiedReception = mainConfig.getBoolean("SimplifiedReception");
 		configTitleScreen = mainConfig.getBoolean("TitleScreen");
-		// Title screens introduced in Minecraft 1.8. Automatically relevant parameter for older versions.
-		if (configTitleScreen && serverVersion < 8) {
-			configTitleScreen = false;
-		}
 		configNotifyOtherPlayers = mainConfig.getBoolean("NotifyOtherPlayers");
 		configActionBarNotify = mainConfig.getBoolean("ActionBarNotify");
-		// Action bars introduced in Minecraft 1.8. Automatically relevant parameter for older versions.
-		if (configActionBarNotify && serverVersion < 8) {
-			configActionBarNotify = false;
-		}
 		configHoverableReceiverChatText = mainConfig.getBoolean("HoverableReceiverChatText");
-		// Hoverable chat messages introduced in Minecraft 1.8. Automatically relevant parameter for older versions.
-		if (configHoverableReceiverChatText && serverVersion < 8) {
-			configHoverableReceiverChatText = false;
-		}
+		configBossBarProgress = mainConfig.getBoolean("BossBarProgress");
 		configReceiverChatMessages = mainConfig.getBoolean("ReceiverChatMessages");
 		ChatColor chatColor = ChatColor.getByChar(mainConfig.getString("Color"));
 		configColor = ColorHelper.convertChatColorToColor(chatColor);
 		mixColor = Color.WHITE.mixColors(ColorHelper.convertChatColorToColor(FIREWORK_COLOR_MIX.get(chatColor)));
+		barColor = ColorHelper.convertChatColorToBarColor(chatColor);
 
 		langAchievementReceived = langConfig.getString("achievement-received") + " " + ChatColor.WHITE;
 		langAchievementNew = pluginHeader + langConfig.getString("achievement-new") + " " + ChatColor.WHITE;
 		langAllAchievementsReceived = pluginHeader + langConfig.getString("all-achievements-received");
+		langBossBarProgress = langConfig.getString("boss-bar-progress");
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+		// Cancel damage if the firework was launched by the plugin.
+		event.setCancelled(event.getEntity().hasMetadata(ADVANCED_ACHIEVEMENTS_FIREWORK));
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -172,13 +175,11 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 		if (!cacheManager.hasPlayerAchievement(player.getUniqueId(), achievement.getName())) {
 			cacheManager.registerNewlyReceivedAchievement(player.getUniqueId(), achievement.getName());
 
-			if (serverVersion >= 12) {
-				Advancement advancement = Bukkit.getAdvancement(new NamespacedKey(advancedAchievements,
-						AdvancementManager.getKey(achievement.getName())));
-				// Matching advancement might not exist if user has not called /aach generate.
-				if (advancement != null) {
-					player.getAdvancementProgress(advancement).awardCriteria(AchievementAdvancement.CRITERIA_NAME);
-				}
+			Advancement advancement = Bukkit.getAdvancement(new NamespacedKey(advancedAchievements,
+					AdvancementManager.getKey(achievement.getName())));
+			// Matching advancement might not exist if user has not called /aach generate.
+			if (advancement != null) {
+				player.getAdvancementProgress(advancement).awardCriteria(AchievementAdvancement.CRITERIA_NAME);
 			}
 		}
 		databaseManager.registerAchievement(player.getUniqueId(), achievement.getName(), System.currentTimeMillis());
@@ -224,7 +225,18 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 		}
 
 		if (configTitleScreen || player.hasPermission("achievement.config.title.screen")) {
-			displayTitle(player, nameToShowUser, messageToShowUser);
+			player.sendTitle(nameToShowUser, messageToShowUser, 10, 70, 20);
+		}
+
+		if (configBossBarProgress) {
+			int receivedAmount = cacheManager.getPlayerAchievements(player.getUniqueId()).size();
+			int totalAmount = achievementMap.getAll().size();
+			double progress = ((double) receivedAmount) / totalAmount;
+			String message = StringUtils.replaceOnce(langBossBarProgress, "AMOUNT", receivedAmount + "/" + totalAmount);
+			BossBar bossBar = Bukkit.getServer().createBossBar(message, barColor, BarStyle.SOLID);
+			bossBar.setProgress(progress);
+			Bukkit.getScheduler().scheduleSyncDelayedTask(advancedAchievements, () -> bossBar.addPlayer(player), 110);
+			Bukkit.getScheduler().scheduleSyncDelayedTask(advancedAchievements, () -> bossBar.removePlayer(player), 240);
 		}
 	}
 
@@ -244,19 +256,16 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 				.flatMap(List::stream)
 				.map(m -> StringHelper.replacePlayerPlaceholders(m, player))
 				.collect(Collectors.toList());
+		String message = langAchievementNew.contains("ACH")
+				? StringUtils.replaceOnce(langAchievementNew, "ACH", nameToShowUser)
+				: langAchievementNew + nameToShowUser;
 		if (configHoverableReceiverChatText) {
 			StringBuilder hover = new StringBuilder(messageToShowUser + "\n");
 			chatMessages.forEach(t -> hover.append(ChatColor.translateAlternateColorCodes('&', t)).append("\n"));
-			try {
-				FancyMessageSender.sendHoverableMessage(player, langAchievementNew + nameToShowUser,
-						hover.substring(0, hover.length() - 1), "white");
-				return;
-			} catch (Exception e) {
-				logger.warning(
-						"Failed to display hoverable message for achievement reception. Displaying standard messages instead.");
-			}
+			fancyMessageSender.sendHoverableMessage(player, message, hover.substring(0, hover.length() - 1), "white");
+			return;
 		}
-		player.sendMessage(langAchievementNew + nameToShowUser);
+		player.sendMessage(message);
 		player.sendMessage(pluginHeader.toString() + ChatColor.WHITE + messageToShowUser);
 		chatMessages.forEach(t -> player.sendMessage(pluginHeader + ChatColor.translateAlternateColorCodes('&', t)));
 	}
@@ -264,38 +273,19 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 	/**
 	 * Displays an action bar message or chat notification to another player.
 	 *
-	 * @param achievementReceiver
+	 * @param receiver
 	 * @param nameToShowUser
 	 * @param otherPlayer
 	 */
-	private void displayNotification(Player achievementReceiver, String nameToShowUser, Player otherPlayer) {
+	private void displayNotification(Player receiver, String nameToShowUser, Player otherPlayer) {
+		String message = langAchievementReceived.contains("ACH")
+				? StringUtils.replaceEach(langAchievementReceived, new String[] { "PLAYER", "ACH" },
+						new String[] { receiver.getName(), nameToShowUser })
+				: StringUtils.replaceOnce(langAchievementReceived, "PLAYER", receiver.getName()) + nameToShowUser;
 		if (configActionBarNotify) {
-			try {
-				FancyMessageSender.sendActionBarMessage(otherPlayer,
-						"&o" + StringUtils.replaceOnce(langAchievementReceived, "PLAYER", achievementReceiver.getName())
-								+ nameToShowUser);
-			} catch (Exception e) {
-				logger.warning("Failed to display action bar message for achievement reception notification.");
-			}
+			otherPlayer.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("&o" + message));
 		} else {
-			otherPlayer.sendMessage(
-					pluginHeader + StringUtils.replaceOnce(langAchievementReceived, "PLAYER", achievementReceiver.getName())
-							+ nameToShowUser);
-		}
-	}
-
-	/**
-	 * Displays title when receiving an achievement.
-	 *
-	 * @param player
-	 * @param nameToShowUser
-	 * @param messageToShowUser
-	 */
-	private void displayTitle(Player player, String nameToShowUser, String messageToShowUser) {
-		try {
-			FancyMessageSender.sendTitle(player, nameToShowUser, messageToShowUser);
-		} catch (Exception e) {
-			logger.warning("Failed to display achievement screen title.");
+			otherPlayer.sendMessage(pluginHeader + message);
 		}
 	}
 
@@ -316,10 +306,8 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 				.build();
 		fireworkMeta.addEffects(fireworkEffect);
 		firework.setFireworkMeta(fireworkMeta);
+		firework.setMetadata(ADVANCED_ACHIEVEMENTS_FIREWORK, new FixedMetadataValue(advancedAchievements, true));
 		firework.setVelocity(location.getDirection().multiply(0));
-
-		// Firework launched by plugin: damage will later be cancelled out.
-		fireworkListener.addFirework(firework);
 	}
 
 	/**
@@ -343,12 +331,8 @@ public class PlayerAdvancedAchievementListener implements Listener, Reloadable {
 	 * @param player
 	 */
 	private void displaySimplifiedReception(Player player) {
-		soundPlayer.play(player, "ENTITY_PLAYER_LEVELUP", "ENTITY_PLAYER_LEVELUP", "LEVEL_UP");
-		if (serverVersion >= 9) {
-			player.spawnParticle(Particle.FIREWORKS_SPARK, player.getLocation(), 500, 0, 3, 0, 0.1f);
-		} else {
-			ParticleEffect.FIREWORKS_SPARK.display(0, 3, 0, 0.1f, 500, player.getLocation(), 1);
-		}
+		player.playSound(player.getLocation(), Sound.valueOf("ENTITY_PLAYER_LEVELUP"), 1, 0.7f);
+		player.spawnParticle(Particle.FIREWORKS_SPARK, player.getLocation(), 500, 0, 3, 0, 0.1f);
 	}
 
 	/**

@@ -44,8 +44,8 @@ achievement-not-found: Podane osiagniecie nie zostalo znalezione.
 achievement-given: Podarowano osiagniecie!
 
 # Related to achievement reception.
-achievement-received: 'Gracz PLAYER otrzymal osiagniecie:'
-achievement-new: 'Nowe osiagniecie:'
+achievement-received: 'Gracz PLAYER otrzymal osiagniecie: ACH'
+achievement-new: 'Nowe osiagniecie: ACH'
 
 # Related to /aach check.
 check-achievement-true: Gracz PLAYER otrzymal osiagniecie o nazwie ACH!
@@ -207,8 +207,6 @@ reset-successful: Statystyki zostaly wyczyszczone przez gracza PLAYER.
 
 # Related to /aach generate.
 advancements-generated: Pomyslnie wygenerowano postepy.
-minecraft-not-supported: Postepy nie sa wspierane w twojej wersji Minecrafta. Zmien
-  wersje na 1.12+.
 
 # Related to /aach add.
 error-value: Wartosc musi byc liczba!

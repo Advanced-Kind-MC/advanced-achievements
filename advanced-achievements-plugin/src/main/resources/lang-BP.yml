@@ -6,7 +6,7 @@
 #   /_/   \_\__,_| \_/ \__,_|_| |_|\___\___|\__,_| /_/   \_\___|_| |_|_|\___| \_/ \___|_| |_| |_|\___|_| |_|\__|___/   #
 #                                                                                                                      #
 #                                       Portuguese translation by bolodecenora,Yamamot00                               #
-#                                            Versao valida para uso em 7.1.0                                           #
+#                                            Versao valida para uso em 7.2.5                                           #
 #======================================================================================================================#
 
 # Various user messages.
@@ -52,8 +52,8 @@ error-value: "O valor VALUE deve ser um número inteiro!"
 statistic-increased: "Estatístisca ACH aumentou em AMOUNT para PLAYER!"
 
 # Related to achievement reception.
-achievement-received: "PLAYER recebeu a conquista:"
-achievement-new: "Nova conquista:"
+achievement-received: "PLAYER recebeu a conquista: ACH"
+achievement-new: "Nova conquista: ACH"
 
 # Related to /aach check.
 check-achievement-true: "PLAYER recebeu a conquista"
@@ -212,7 +212,6 @@ reset-all-successful: "Todas as estatísticas foram apagadas para PLAYER."
 
 # Related to /aach generate.
 advancements-generated: "Avanços foram gerados com sucesso."
-minecraft-not-supported: "Avanços não suportados na sua versão do Minecraft. Por favor, atualize para 1.13."
 
 # Used in /aach inspect
 achievement-not-recognized: "Conquista chamada 'NAME' não foi reconhecido. Você quis dizer CLOSEST_MATCH?"

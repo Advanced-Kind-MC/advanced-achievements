@@ -28,9 +28,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class JobsRebornListener extends AbstractListener {
 
 	@Inject
-	public JobsRebornListener(@Named("main") YamlConfiguration mainConfig, int serverVersion,
-			AchievementMap achievementMap, CacheManager cacheManager) {
-		super(MultipleAchievements.JOBSREBORN, mainConfig, serverVersion, achievementMap, cacheManager);
+	public JobsRebornListener(@Named("main") YamlConfiguration mainConfig, AchievementMap achievementMap,
+			CacheManager cacheManager) {
+		super(MultipleAchievements.JOBSREBORN, mainConfig, achievementMap, cacheManager);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -57,7 +57,7 @@ public class JobsRebornListener extends AbstractListener {
 
 		for (JobProgression progression : Jobs.getPlayerManager().getPlayerInfo(event.getPlayer().getUniqueId())
 				.getJobsPlayer().getJobProgression()) {
-			updateJob(player, progression.getJob().getName(), progression.getLevel());
+			updateJob(player, progression.getJob().getJobFullName().toLowerCase(), progression.getLevel());
 		}
 	}
 

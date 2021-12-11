@@ -1,7 +1,6 @@
 package com.hm.achievement.gui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.hm.achievement.category.CommandAchievements;
 import com.hm.achievement.category.MultipleAchievements;
 import com.hm.achievement.category.NormalAchievements;
-import com.hm.achievement.config.AchievementMap;
 import com.hm.achievement.exception.PluginLoadError;
 import com.hm.achievement.lifecycle.Reloadable;
 import com.hm.achievement.utils.MaterialHelper;
@@ -56,25 +54,17 @@ public class GUIItems implements Reloadable {
 	private final YamlConfiguration langConfig;
 	private final YamlConfiguration guiConfig;
 	private final MaterialHelper materialHelper;
-	private final int serverVersion;
-	private final AchievementMap achievementMap;
 
 	private String configListAchievementFormat;
 	private String configIcon;
 
-	private String langListAchievementsInCategoryPlural;
-	private String langListAchievementInCategorySingular;
-
 	@Inject
 	public GUIItems(@Named("main") YamlConfiguration mainConfig, @Named("lang") YamlConfiguration langConfig,
-			@Named("gui") YamlConfiguration guiConfig, MaterialHelper materialHelper, int serverVersion,
-			AchievementMap achievementMap) {
+			@Named("gui") YamlConfiguration guiConfig, MaterialHelper materialHelper) {
 		this.mainConfig = mainConfig;
 		this.langConfig = langConfig;
 		this.guiConfig = guiConfig;
 		this.materialHelper = materialHelper;
-		this.serverVersion = serverVersion;
-		this.achievementMap = achievementMap;
 	}
 
 	@Override
@@ -82,18 +72,14 @@ public class GUIItems implements Reloadable {
 		configListAchievementFormat = "&8" + mainConfig.getString("ListAchievementFormat");
 		configIcon = StringEscapeUtils.unescapeJava(mainConfig.getString("Icon"));
 
-		langListAchievementsInCategoryPlural = langConfig.getString("list-achievements-in-category-plural");
-		langListAchievementInCategorySingular = langConfig.getString("list-achievements-in-category-singular");
-
 		orderedAchievementItems.clear();
-		// getShallowKeys returns a LinkedHashSet, preserving the ordering specified in the file.
+		// getKeys returns a LinkedHashSet, preserving the ordering specified in the file.
 		List<String> orderedCategories = new ArrayList<>(guiConfig.getKeys(false));
 		// Prepare item stacks displayed in the GUI for Multiple achievements.
 		for (MultipleAchievements category : MultipleAchievements.values()) {
 			String categoryName = category.toString();
-			int totalAchievements = achievementMap.getForCategory(category).size();
 			ItemStack itemStack = createItemStack(categoryName);
-			buildItemLore(itemStack, categoryName, totalAchievements);
+			buildItemLore(itemStack, categoryName);
 			orderedAchievementItems.put(new OrderedCategory(orderedCategories.indexOf(categoryName), category), itemStack);
 		}
 
@@ -101,42 +87,28 @@ public class GUIItems implements Reloadable {
 		for (NormalAchievements category : NormalAchievements.values()) {
 			String categoryName = category.toString();
 			ItemStack itemStack = createItemStack(categoryName);
-			int totalAchievements = achievementMap.getForCategory(category).size();
-			buildItemLore(itemStack, categoryName, totalAchievements);
+			buildItemLore(itemStack, categoryName);
 			orderedAchievementItems.put(new OrderedCategory(orderedCategories.indexOf(categoryName), category), itemStack);
 		}
 
 		// Prepare item stack displayed in the GUI for Commands achievements.
 		String categoryName = CommandAchievements.COMMANDS.toString();
 		ItemStack itemStack = createItemStack(categoryName);
-		int totalAchievements = achievementMap.getForCategory(CommandAchievements.COMMANDS).size();
-		buildItemLore(itemStack, categoryName, totalAchievements);
+		buildItemLore(itemStack, categoryName);
 		orderedAchievementItems.put(new OrderedCategory(orderedCategories.indexOf(categoryName),
 				CommandAchievements.COMMANDS), itemStack);
 
-		if (serverVersion >= 13) {
-			achievementNotStartedDefault = createItemStack("AchievementNotStarted", "red_terracotta", 0);
-			achievementStartedDefault = createItemStack("AchievementStarted", "yellow_terracotta", 0);
-			achievementReceivedDefault = createItemStack("AchievementReceived", "lime_terracotta", 0);
-		} else {
-			achievementNotStartedDefault = createItemStack("AchievementNotStarted", "stained_clay", 14);
-			achievementStartedDefault = createItemStack("AchievementStarted", "stained_clay", 4);
-			achievementReceivedDefault = createItemStack("AchievementReceived", "stained_clay", 5);
-		}
+		achievementNotStartedDefault = new ItemStack(Material.RED_TERRACOTTA, 1);
+		achievementStartedDefault = new ItemStack(Material.YELLOW_TERRACOTTA, 1);
+		achievementReceivedDefault = new ItemStack(Material.LIME_TERRACOTTA, 1);
 		for (String type : guiConfig.getConfigurationSection("AchievementNotStarted").getKeys(false)) {
-			if (!"Item".equals(type) && !"Metadata".equals(type)) {
-				achievementNotStarted.put(type, createItemStack("AchievementNotStarted." + type));
-			}
+			achievementNotStarted.put(type, createItemStack("AchievementNotStarted." + type));
 		}
 		for (String type : guiConfig.getConfigurationSection("AchievementStarted").getKeys(false)) {
-			if (!"Item".equals(type) && !"Metadata".equals(type)) {
-				achievementStarted.put(type, createItemStack("AchievementStarted." + type));
-			}
+			achievementStarted.put(type, createItemStack("AchievementStarted." + type));
 		}
 		for (String type : guiConfig.getConfigurationSection("AchievementReceived").getKeys(false)) {
-			if (!"Item".equals(type) && !"Metadata".equals(type)) {
-				achievementReceived.put(type, createItemStack("AchievementReceived." + type));
-			}
+			achievementReceived.put(type, createItemStack("AchievementReceived." + type));
 		}
 		previousButton = createButton("PreviousButton", "list-previous-message", "list-previous-lore");
 		nextButton = createButton("NextButton", "list-next-message", "list-next-lore");
@@ -152,24 +124,10 @@ public class GUIItems implements Reloadable {
 	 * @return the item for the category
 	 */
 	private ItemStack createItemStack(String categoryName) {
-		return createItemStack(categoryName, null, 0);
-	}
-
-	/**
-	 * Creates an ItemStack based on information extracted from gui.yml or default values if not found.
-	 *
-	 * @param categoryName
-	 * @param defaultMaterial
-	 * @param defaultMetadata
-	 * @return the item for the category
-	 */
-	@SuppressWarnings("deprecation")
-	private ItemStack createItemStack(String categoryName, String defaultMaterial, int defaultMetadata) {
 		String path = categoryName + ".Item";
-		Material material = materialHelper.matchMaterial(guiConfig.getString(path, defaultMaterial), Material.BEDROCK,
+		Material material = materialHelper.matchMaterial(guiConfig.getString(path, null), Material.BEDROCK,
 				"gui.yml (" + path + ")");
-		short metadata = (short) guiConfig.getInt(categoryName + ".Metadata", defaultMetadata);
-		return new ItemStack(material, 1, metadata);
+		return new ItemStack(material, 1);
 	}
 
 	/**
@@ -202,9 +160,8 @@ public class GUIItems implements Reloadable {
 	 *
 	 * @param item
 	 * @param categoryName
-	 * @param totalAchievements
 	 */
-	private void buildItemLore(ItemStack item, String categoryName, int totalAchievements) {
+	private void buildItemLore(ItemStack item, String categoryName) {
 		ItemMeta itemMeta = item.getItemMeta();
 		// Some lang.yml keys differ slightly for the category name (e.g. Treasure*s* -> list-treasure).
 		String langKey = StringHelper.getClosestMatch("list-" + categoryName.toLowerCase(), langConfig.getKeys(false));
@@ -217,17 +174,6 @@ public class GUIItems implements Reloadable {
 					new String[] { "%ICON%", "%NAME%" }, new String[] { configIcon, "&l" + displayName + "&8" });
 			itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', formattedDisplayName));
 		}
-
-		// Construct lore of the category item.
-		String amountMessage;
-		if (totalAchievements > 1) {
-			amountMessage = StringUtils.replaceOnce(langListAchievementsInCategoryPlural, "AMOUNT",
-					Integer.toString(totalAchievements));
-		} else {
-			amountMessage = StringUtils.replaceOnce(langListAchievementInCategorySingular, "AMOUNT",
-					Integer.toString(totalAchievements));
-		}
-		itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&8" + amountMessage)));
 		item.setItemMeta(itemMeta);
 	}
 
