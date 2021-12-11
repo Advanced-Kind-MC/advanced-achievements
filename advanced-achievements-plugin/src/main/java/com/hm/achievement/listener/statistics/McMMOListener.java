@@ -29,9 +29,9 @@ import com.hm.achievement.db.CacheManager;
 public class McMMOListener extends AbstractListener {
 
 	@Inject
-	public McMMOListener(@Named("main") YamlConfiguration mainConfig, int serverVersion, AchievementMap achievementMap,
+	public McMMOListener(@Named("main") YamlConfiguration mainConfig, AchievementMap achievementMap,
 			CacheManager cacheManager) {
-		super(MultipleAchievements.MCMMO, mainConfig, serverVersion, achievementMap, cacheManager);
+		super(MultipleAchievements.MCMMO, mainConfig, achievementMap, cacheManager);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

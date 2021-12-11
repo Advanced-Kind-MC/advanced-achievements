@@ -287,15 +287,11 @@ public interface ReloadableModule {
 
 	@Binds
 	@IntoSet
-	abstract Reloadable bindJobsRebornListener(JobsRebornListener jobsRebornListener);
+	Reloadable bindMcMMOListener(McMMOListener mcMMOListener);
 
 	@Binds
 	@IntoSet
-	abstract Reloadable bindMcMMOListener(McMMOListener mcMMOListener);
-
-	@Binds
-	@IntoSet
-	abstract Reloadable bindBalanceListener(BalanceListener balanceListener);
+	Reloadable bindBalanceListener(BalanceListener balanceListener);
 
 	@Binds
 	@IntoSet

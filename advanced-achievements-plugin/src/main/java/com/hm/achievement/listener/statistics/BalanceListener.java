@@ -20,7 +20,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
  * Listener class to deal with Eggs achievements.
- * 
+ *
  * @author Pyves
  *
  */
@@ -28,9 +28,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class BalanceListener extends AbstractListener {
 
 	@Inject
-	public BalanceListener(@Named("main") YamlConfiguration mainConfig, int serverVersion,
+	public BalanceListener(@Named("main") YamlConfiguration mainConfig,
 			AchievementMap achievementMap, CacheManager cacheManager) {
-		super(NormalAchievements.BALANCE, mainConfig, serverVersion, achievementMap, cacheManager);
+		super(NormalAchievements.BALANCE, mainConfig, achievementMap, cacheManager);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
