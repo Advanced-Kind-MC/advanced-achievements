@@ -15,6 +15,8 @@ import com.hm.achievement.category.NormalAchievements;
 import com.hm.achievement.config.AchievementMap;
 import com.hm.achievement.db.CacheManager;
 import com.hm.achievement.utils.StatisticIncreaseHandler;
+import solutions.nuhvel.spigot.advancedafk.AdvancedAFK;
+import solutions.nuhvel.spigot.advancedafk.utils.AFKHandler;
 
 /**
  * Class used to monitor players' played times.
@@ -28,7 +30,7 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 	private static final long MILLIS_PER_HOUR = TimeUnit.HOURS.toMillis(1);
 
 	private Essentials essentials;
-	private me.prunt.advancedafk.Main advancedAFK;
+	private AdvancedAFK advancedAFK;
 	private long previousTimeMillis;
 
 	private boolean configIgnoreAFKPlayedTimeEssentials;
@@ -43,7 +45,7 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 			essentials = (Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
 		}
 		if (Bukkit.getPluginManager().isPluginEnabled("AdvancedAFK")) {
-			advancedAFK = (me.prunt.advancedafk.Main) Bukkit.getPluginManager().getPlugin("AdvancedAFK");
+			advancedAFK = (AdvancedAFK) Bukkit.getPluginManager().getPlugin("AdvancedAFK");
 		}
 
 		previousTimeMillis = System.currentTimeMillis();
@@ -81,7 +83,7 @@ public class AchievePlayTimeRunnable extends StatisticIncreaseHandler implements
 			return;
 		}
 		// AdvancedAFK variant
-		if (configIgnoreAFKPlayedTimeAdvancedAFK && me.prunt.advancedafk.utils.AFKHandler.getAFKPlayer(advancedAFK, player).isAFK()) {
+		if (configIgnoreAFKPlayedTimeAdvancedAFK && AFKHandler.getAFKPlayer(advancedAFK, player).isAFK()) {
 			return;
 		}
 

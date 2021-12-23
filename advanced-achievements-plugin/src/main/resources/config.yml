@@ -629,6 +629,16 @@ McMMO:
       DisplayName: Hunter
       Type: normal
 
+# When you level up in a job (job name lower case).
+AureliumSkills:
+  fishing:
+    1:
+      Goal: Level up as a hunter!
+      Message: You have reached hunter level 2!
+      Name: jobsreborn_1_hunter
+      DisplayName: Hunter
+      Type: normal
+
 #======================================================================================================================#
 #                                              NORMAL ACTION ACHIEVEMENTS                                              #
 #                                                                                                                      #

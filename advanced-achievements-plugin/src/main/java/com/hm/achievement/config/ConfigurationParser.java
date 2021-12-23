@@ -188,6 +188,14 @@ public class ConfigurationParser {
 			logger.warning(
 				"Ensure you have placed McMMO in your plugins folder or add McMMO to the DisabledCategories list in config.yml.");
 		}
+		// Need AureliumSkills for AureliumSkills category.
+		if (!disabledCategories.contains(MultipleAchievements.AureliumSkills)
+			&& !Bukkit.getPluginManager().isPluginEnabled("AureliumSkills")) {
+			disabledCategories.add(MultipleAchievements.AureliumSkills);
+			logger.warning("Overriding configuration: disabling AureliumSkills category.");
+			logger.warning(
+				"Ensure you have placed AureliumSkills in your plugins folder or add AureliumSkills to the DisabledCategories list in config.yml.");
+		}
 		// Raids introduced in 1.14.
 		if (!disabledCategories.contains(NormalAchievements.RAIDSWON) && serverVersion < 14) {
 			disabledCategories.add(NormalAchievements.RAIDSWON);

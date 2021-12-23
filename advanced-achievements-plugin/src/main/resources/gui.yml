@@ -155,6 +155,8 @@ Commands:
   Item: bookshelf
 McMMO:
   Item: gold_ingot
+AureliumSkills:
+  Item: gold_ingot
 Balance:
   Item: gold_nugget
 

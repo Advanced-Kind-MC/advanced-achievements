@@ -20,6 +20,7 @@ public enum MultipleAchievements implements Category {
 	CUSTOM("Custom", "customname"),
 	JOBSREBORN("JobsReborn", "jobname"),
 	MCMMO("McMMO", "skillname"),
+	AureliumSkills("AureliumSkills", "skillname"),
 	EFFECTSHELD("EffectsHeld", "effect");
 
 	private static final Map<String, MultipleAchievements> CATEGORY_NAMES_TO_ENUM = new HashMap<>();
