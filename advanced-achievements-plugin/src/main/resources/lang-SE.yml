@@ -82,6 +82,8 @@ version-command-website: "Websida:"
 version-command-author: "Författare:"
 version-command-description: "Beskrivning:"
 version-command-description-details: "Advanced Achievements möjliggör unika och utmanande prestationer. Försök samla så många du kan, få belöningar, klättra på rankingen och mottag RP böcker!"
+version-command-cmi: "CMI-integration:"
+version-command-essentials: "Essentials integration:"
 version-command-vault: "Vault integrering:"
 version-command-database: "Databastyp:"
 

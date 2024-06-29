@@ -108,6 +108,7 @@ version-command-description: 'Beschreibung:'
 version-command-description-details: Advanced Achievements ermöglichen einzigartige und herausfordernde Leistungen. Versuch doch, so viele zu sammeln, wie du kannst. Verdiene wertvolle Belohnungen, erklimme die Spitze der Rangliste und erhalte RP-Bücher.
 version-command-vault: 'Vault integriert:'
 version-command-petmaster: 'Pet Master integriert:'
+version-command-cmi: "CMI integriert:"
 version-command-essentials: "Essentials integriert:"
 version-command-placeholderapi: "PlaceholderAPI integriert:"
 version-command-database: 'Datenbank Typ:'
@@ -201,8 +202,6 @@ reset-successful: "Die Statistik von Spieler wurde zurückgesetzt."
 
 # Related to /aach generate
 advancements-generated: "Fortschritte wurden erfolgreich generiert."
-aach-command-generate: "Generiere Fortschritte."
-aach-command-generate-hover: "Das ist möglicherweise ein langsamer Befehl; Verwende ihn bedacht!"
 
 # Related to /aach inspect
 achievement-not-recognized: "Der Erfolg mit dem namen 'NAME' wurde nicht erkannt. Meintest du CLOSEST_MATCH?"

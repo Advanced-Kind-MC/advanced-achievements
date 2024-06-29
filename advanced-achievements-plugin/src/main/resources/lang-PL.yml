@@ -1,4 +1,3 @@
-
 #=============================================================#
 # +---------------------------------------------------------+ #
 # |   Advanced Achievements Polish translation by KapceRBLX | #
@@ -112,9 +111,10 @@ version-command-description-details: Advanced Achievements wprowadza do gry unik
   sie po szczeblach rankingu i zbieraj ksiegi osiagniec!
 version-command-vault: 'Integracja z Vault:'
 version-command-petmaster: 'Integracja z Pet Master:'
-version-command-database: 'Typ bazy danych:'
+version-command-cmi: "Integracja CMI:"
 version-command-essentials: 'Essentials integration:'
 version-command-placeholderapi: 'Integracja z PaPi:'
+version-command-database: 'Typ bazy danych:'
 
 # Related to /aach list.
 list-gui-title: '&5&lOsiagniecia'

@@ -1,4 +1,3 @@
-
 #=============================================================#
 # +---------------------------------------------------------+ #
 # |  Advanced Achievements Turkish translation by DarkJoya  | #
@@ -113,10 +112,11 @@ version-command-author: 'Yapımcı:'
 version-command-description: 'Açıklama:'
 version-command-description-details: Kolay, Yapımı Eğlenceli ve Çok Yetenekli Başarım
   Eklentisi :)
-version-command-vault: 'Vault Entegrasyonu:'
-version-command-petmaster: 'Pet Master Entegrasyonu:'
+version-command-vault: 'Vault entegrasyonu:'
+version-command-petmaster: 'Pet Master entegrasyonu:'
+version-command-cmi: "CMI entegrasyonu:"
 version-command-essentials: 'Essentials Entegrasyonu:'
-version-command-placeholderapi: 'PlaceholderAPI Entegrasyonu:'
+version-command-placeholderapi: 'PlaceholderAPI entegrasyonu:'
 version-command-database: 'DB türü:'
 
 # Related to /aach list.

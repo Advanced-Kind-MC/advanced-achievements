@@ -1,4 +1,3 @@
-
 #=================================================================#
 # +-------------------------------------------------------------+ #
 # | Advanced Achievements. Russian translation by Doctor_Wratch | #
@@ -114,6 +113,7 @@ version-command-description: 'Описание:'
 version-command-description-details: Достижения привносят на ваш сервер немного разнообразия.
 version-command-vault: 'Интеграция Vault:'
 version-command-petmaster: 'Интеграция Pet Master:'
+version-command-cmi: "Интеграция с CMI:"
 version-command-essentials: 'Интеграция Essentials:'
 version-command-placeholderapi: 'Интеграция PlaceholderAPI:'
 version-command-database: 'Тип базы данных:'

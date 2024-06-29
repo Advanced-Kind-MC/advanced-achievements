@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -22,7 +23,8 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 /**
- * Abstract class in charge of factoring out common functionality for the listener classes with cooldown maps.
+ * Abstract class in charge of factoring out common functionality for the
+ * listener classes with cooldown maps.
  *
  * @author Pyves
  */
@@ -78,7 +80,8 @@ public class AbstractRateLimitedListener extends AbstractListener implements Cle
 	}
 
 	/**
-	 * Determines whether the player is in cooldown, i.e. a similar action was taken into account too recently.
+	 * Determines whether the player is in cooldown, i.e. a similar action was taken
+	 * into account too recently.
 	 *
 	 * @param player
 	 * @param slotNumber
@@ -86,19 +89,22 @@ public class AbstractRateLimitedListener extends AbstractListener implements Cle
 	 */
 	private boolean isInCooldownPeriod(Player player, int slotNumber) {
 		UUID uuid = player.getUniqueId();
-		long currentPlayerStatistic = cacheManager.getAndIncrementStatisticAmount((NormalAchievements) category, uuid, 0);
+		long currentPlayerStatistic = cacheManager.getAndIncrementStatisticAmount((NormalAchievements) category, uuid,
+				0);
 		// Ignore cooldown if player has received all achievements in the category.
 		if (currentPlayerStatistic >= hardestCategoryThreshold) {
 			return false;
 		}
 
-		Map<UUID, Long> playersLastActionTimes = slotsToPlayersLastActionTimes.computeIfAbsent(slotNumber, HashMap::new);
+		Map<UUID, Long> playersLastActionTimes = slotsToPlayersLastActionTimes.computeIfAbsent(slotNumber,
+				HashMap::new);
 		long currentTimeMillis = System.currentTimeMillis();
 		long timeToWait = playersLastActionTimes.getOrDefault(uuid, 0L) + categoryCooldown - currentTimeMillis;
 		if (timeToWait > 0) {
 			if (configCooldownActionBar) {
 				if (category == NormalAchievements.MUSICDISCS) {
-					// Display message with a delay to avoid it being overwritten by disc name message.
+					// Display message with a delay to avoid it being overwritten by disc name
+					// message.
 					Bukkit.getScheduler().scheduleSyncDelayedTask(advancedAchievements,
 							() -> displayActionBarMessage(player, timeToWait), 20);
 				} else {
@@ -119,7 +125,7 @@ public class AbstractRateLimitedListener extends AbstractListener implements Cle
 	 */
 	private void displayActionBarMessage(Player player, long timeToWait) {
 		String timeWithOneDecimal = String.format("%.1f", (double) timeToWait / 1000);
-		String message = "&o" + StringUtils.replaceOnce(langStatisticCooldown, "TIME", timeWithOneDecimal);
+		String message = ChatColor.ITALIC + StringUtils.replaceOnce(langStatisticCooldown, "TIME", timeWithOneDecimal);
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
 	}
 }

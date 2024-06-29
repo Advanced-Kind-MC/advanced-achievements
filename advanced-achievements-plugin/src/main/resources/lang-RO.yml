@@ -64,6 +64,8 @@ version-command-website: "Website:"
 version-command-author: "Autor:"
 version-command-description: "Descriere:"
 version-command-description-details: "AdvancedAchievements iti permite sa creezi realizari unice. Pune-ti imaginatia la incercare si distreaza-te tu si jucatorii tai cu acest plugin."
+version-command-cmi: "Integrare CMI:"
+version-command-essentials: "Integrare esențială:"
 version-command-vault: "Support Vault:"
 version-command-database: "Baza de date:"
 

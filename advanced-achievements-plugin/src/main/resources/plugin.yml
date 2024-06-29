@@ -1,15 +1,15 @@
 name: AdvancedAchievements
 main: com.hm.achievement.AdvancedAchievements
-version: 8.0.2
+version: ${revision}
 author: DarkPyves
-softdepend: [Vault,PetMaster,BungeeTabListPlus,Essentials,PlaceholderAPI,Jobs,mcMMO,AureliumSkills,AdvancedAFK,iConomy]
+softdepend: [ CMI,Vault,PetMaster,BungeeTabListPlus,Essentials,PlaceholderAPI,Jobs,mcMMO,AureliumSkills,AdvancedAFK,iConomy]
 description: Advanced Achievements enables unique and challenging achievements. Try to collect as many as you can, earn rewards, climb the rankings and receive RP books!
 website: https://github.com/PyvesB/advanced-achievements
 api-version: 1.13
 commands:
   aach:
     description: Main Advanced Achievements command, use it to list sub-commands.
-    aliases: [advancedachievements,aachievements,aa]
+    aliases: [ advancedachievements,aachievements,aa ]
     usage: /<command>
 permissions:
   achievement.book:
