@@ -132,7 +132,7 @@
             <dependency>
                 <groupId>com.github.Zrips</groupId>
                 <artifactId>Jobs</artifactId>
-                <version>5.2.2.5</version>
+                <version>v5.2.2.3</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
