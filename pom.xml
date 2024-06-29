@@ -63,8 +63,12 @@
 
 	<repositories>
 		<repository>
-			<id>essentials-repo</id>
+			<id>essentials-releases</id>
 			<url>https://repo.essentialsx.net/releases/</url>
+		</repository>
+		<repository>
+			<id>paper-repo</id>
+			<url>https://papermc.io/repo/repository/maven-public/</url>
 		</repository>
 		<repository>
 			<id>placeholderapi-repo</id>
