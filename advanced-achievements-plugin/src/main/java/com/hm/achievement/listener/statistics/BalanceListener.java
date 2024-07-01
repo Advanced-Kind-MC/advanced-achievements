@@ -34,20 +34,16 @@ public class BalanceListener extends AbstractListener {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerEggThrow(AccountUpdateEvent event) {
-		if (event.getAccount().isBank())
-			return;
-		Player player = Bukkit.getPlayer(event.getAccountName());
+	public void onPlayerAccountUpdate(AccountUpdateEvent event) {
+		Player player = Bukkit.getPlayerExact(event.getAccountName());
 		if(player == null)
 			return;
 		increaseStatisticAndAwardAchievementsIfAvailable(player, (int) Math.floor(event.getBalance()));
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerEggThrow(AccountSetEvent event) {
-		if (event.getAccount().isBank())
-			return;
-		Player player = Bukkit.getPlayer(event.getAccountName());
+	public void onPlayerAccountSet(AccountSetEvent event) {
+		Player player = Bukkit.getPlayerExact(event.getAccountName());
 		if(player == null)
 			return;
 		increaseStatisticAndAwardAchievementsIfAvailable(player, (int) Math.floor(event.getBalance()));

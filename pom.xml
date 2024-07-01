@@ -21,6 +21,7 @@
         <java.version>21</java.version>
         <revision>6.0.0</revision>
         <maven.test.skip>true</maven.test.skip>
+        <projectRoot>${project.basedir}</projectRoot>
     </properties>
 
     <modules>
@@ -61,6 +62,25 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
                 </plugin>
+                <!-- Directory plugin to find parent root directory absolute path -->
+                <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>0.1</version>
+                    <executions>
+                        <execution>
+                            <id>directories</id>
+                            <goals>
+                                <goal>highest-basedir</goal>
+                            </goals>
+                            <phase>initialize</phase>
+                            <configuration>
+                                <property>main.basedir</property>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
             </plugins>
         </pluginManagement>
     </build>
@@ -79,7 +99,7 @@
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
         <repository>
-            <id>jitpack-repo</id>
+            <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
         <repository>
@@ -160,7 +180,7 @@
             <dependency>
                 <groupId>com.github.iconomy5legacy</groupId>
                 <artifactId>iConomy</artifactId>
-                <version>v5.10</version>
+                <version>5.25</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -168,7 +188,7 @@
                 <artifactId>mcMMO</artifactId>
                 <version>2.1.174-SNAPSHOT</version>
                 <scope>system</scope>
-                <systemPath>${project.basedir}/dependencies/mcMMO.jar</systemPath>
+                <systemPath>${projectRoot}/dependencies/mcMMO.jar</systemPath>
             </dependency>
             <dependency>
                 <groupId>com.github.Archy-X</groupId>
@@ -181,7 +201,7 @@
                 <artifactId>advancedafk</artifactId>
                 <version>2.0</version>
                 <scope>system</scope>
-                <systemPath>${project.basedir}/dependencies/AdvancedAFK.jar</systemPath>
+                <systemPath>${projectRoot}/dependencies/AdvancedAFK.jar</systemPath>
             </dependency>
 
             <!-- Test dependencies -->

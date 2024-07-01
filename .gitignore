@@ -173,7 +173,6 @@ $RECYCLE.BIN/
 hs_err_pid*
 
 # premium content
-dependencies/AdvancedAFK.jar
-dependencies/mcMMO.jar
+dependencies/*.jar
 advanced-achievements-plugin/achievements.mv.db
 .vscode/settings.json

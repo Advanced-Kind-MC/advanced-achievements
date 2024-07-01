@@ -10,6 +10,10 @@
     <artifactId>advanced-achievements-plugin</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <projectRoot>${project.basedir}/..</projectRoot>
+    </properties>
+    
     <build>
         <finalName>original-${project.artifactId}</finalName>
         <plugins>
